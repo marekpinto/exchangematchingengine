@@ -11,15 +11,20 @@ void Engine::accept(ClientConnection connection)
 	thread.detach();
 }
 
-void Engine::updateBuyBook(char instrument[9], price, count)
+void Engine::updateBuyBook(char instrument[9], float price, int count)
 {
 	get<0>(instrumentMap[instrument]).emplace_back(price, count);
 }
 
-void Engine::updateSellBook(char instrument[9], price, count)
+void Engine::updateSellBook(char instrument[9], float price, int count)
 {
 	get<1>(instrumentMap[instrument]).emplace_back(price, count);
 }
+
+/*Engine()
+{  
+	instrumentMap = new std::unordered_map< char[9], std::tuple<orderBook, orderBook> >();
+}*/
 
 void Engine::connection_thread(ClientConnection connection)
 {
@@ -38,11 +43,11 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy: {
-				&Engine::updateBuyBook(input.instrument, input.price, input.count);
+				Engine::updateBuyBook(input.instrument, input.price, input.count);
 			}
 
 			case input_sell: {
-				&Engine::updateSellBook(input.instrument, input.price, input.count);
+				Engine::updateSellBook(input.instrument, input.price, input.count);
 			}
 
 			case input_cancel: {

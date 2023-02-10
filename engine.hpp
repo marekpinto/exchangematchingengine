@@ -20,15 +20,15 @@ struct Engine
 {
 public:
 	void accept(ClientConnection conn);
-	void updateBuyBook(char instrument[9], int price, int count);
-	void updateSellBook(char instrument[9], int price, int count);
+	void updateBuyBook(char instrument[9], float price, int count);
+	void updateSellBook(char instrument[9], float price, int count);
 
 
 private:
 	void connection_thread(ClientConnection conn);
 
 	// tracks a mapping from instrument names to a buy orderBook and sell orderBook, respectively.
-	std::unordered_map< char[9], std::tuple<orderBook, orderBook> > instrumentMap;
+	std::unordered_map< std::string, std::tuple<orderBook, orderBook> > instrumentMap;
 
 };
 
