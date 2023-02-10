@@ -8,26 +8,27 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <unordered_map>
 
 #include "io.hpp"
 
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
-typedef vector< tuple<float,int> > orderBook;
+typedef std::vector< std::tuple<float,int> > orderBook;
 
 struct Engine
 {
 public:
 	void accept(ClientConnection conn);
-	void updateBuyBook(char instrument[9], int price, int count)
-	void updateSellBook(char instrument[9], int price, int count)
+	void updateBuyBook(char instrument[9], int price, int count);
+	void updateSellBook(char instrument[9], int price, int count);
 
 
 private:
 	void connection_thread(ClientConnection conn);
 
 	// tracks a mapping from instrument names to a buy orderBook and sell orderBook, respectively.
-	unordered_map< char[9], tuple<orderBook, orderBook> > instrumentMap;
+	std::unordered_map< char[9], std::tuple<orderBook, orderBook> > instrumentMap;
 
 };
 
