@@ -4,10 +4,21 @@
 #include "io.hpp"
 #include "engine.hpp"
 
-void Engine::accept(ClientConnection connection)
+//makes a thread every time a connection comes in
+void Engine::accept(ClientConnection connection) 
 {
 	auto thread = std::thread(&Engine::connection_thread, this, std::move(connection));
 	thread.detach();
+}
+
+void Engine::updateBuyBook(char instrument[9], price, count)
+{
+	get<0>(instrumentMap[instrument]).emplace_back(price, count);
+}
+
+void Engine::updateSellBook(char instrument[9], price, count)
+{
+	get<1>(instrumentMap[instrument]).emplace_back(price, count);
 }
 
 void Engine::connection_thread(ClientConnection connection)
@@ -26,6 +37,14 @@ void Engine::connection_thread(ClientConnection connection)
 		// provided in the Output class:
 		switch(input.type)
 		{
+			case input_buy: {
+				&Engine::updateBuyBook(input.instrument, input.price, input.count);
+			}
+
+			case input_sell: {
+				&Engine::updateSellBook(input.instrument, input.price, input.count);
+			}
+
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 

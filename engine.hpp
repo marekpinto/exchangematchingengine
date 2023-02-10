@@ -5,17 +5,33 @@
 #define ENGINE_HPP
 
 #include <chrono>
+#include <vector>
+#include <tuple>
+#include <string>
 
 #include "io.hpp"
+
+// the tuple is of form (price, size)
+// to sort: sort(orderBook.start(), orderBook.end());
+typedef vector< tuple<float,int> > orderBook;
 
 struct Engine
 {
 public:
 	void accept(ClientConnection conn);
+	void updateBuyBook(char instrument[9], int price, int count)
+	void updateSellBook(char instrument[9], int price, int count)
+
 
 private:
 	void connection_thread(ClientConnection conn);
+
+	// tracks a mapping from instrument names to a buy orderBook and sell orderBook, respectively.
+	unordered_map< char[9], tuple<orderBook, orderBook> > instrumentMap;
+
 };
+
+
 
 inline std::chrono::microseconds::rep getCurrentTimestamp() noexcept
 {
