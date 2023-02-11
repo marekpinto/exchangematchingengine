@@ -4,7 +4,7 @@
 #include <vector>
 #include <tuple>
 
-struct orderbook {
+struct Orderbook {
 
 public:
   // Arrays of tuples
@@ -15,8 +15,8 @@ public:
   const std::vector<std::tuple<float, int>>& getBook() const;
 
   // Mutators
-  void add(float price, int size);
-  void remove(int index);
+  void add_new(float price, int size);
+  void remove_from(int index);
 };
 
 #endif

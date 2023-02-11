@@ -19,6 +19,7 @@ typedef std::vector< std::tuple<float,int> > orderBook;
 struct Engine
 {
 public:
+	Engine();
 	void accept(ClientConnection conn);
 	void updateBuyBook(char instrument[9], float price, int count);
 	void updateSellBook(char instrument[9], float price, int count);

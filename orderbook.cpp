@@ -1,17 +1,17 @@
 #include "orderbook.hpp"
 
-int orderbook::length() const {
+int Orderbook::length() const {
   return book.size();
 }
 
-const std::vector<std::tuple<float, int>>& orderbook::getBook() const {
+const std::vector<std::tuple<float, int>>& Orderbook::getBook() const {
   return book;
 }
 
-void orderbook::add(float price, int size) {
+void Orderbook::add_new(float price, int size) {
   book.push_back(std::make_tuple(price, size));
 }
 
-void orderbook::remove(int index) {
+void Orderbook::remove_from(int index) {
   book.erase(book.begin() + index);
 }
