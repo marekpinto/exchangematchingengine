@@ -57,10 +57,12 @@ void Engine::connection_thread(ClientConnection connection)
 		{
 			case input_buy: {
 				Engine::updateBuyBook(ticker, input.price, input.count);
+				break;
 			}
 
 			case input_sell: {
 				Engine::updateSellBook(ticker, input.price, input.count);
+				break;
 			}
 
 			case input_cancel: {
