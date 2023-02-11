@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <string>
 
 #include "io.hpp"
 #include "engine.hpp"
@@ -13,19 +14,21 @@ void Engine::accept(ClientConnection connection)
 	thread.detach();
 }
 
-void Engine::updateBuyBook(char instrument[9], float price, int count)
+void Engine::updateBuyBook(std::string ticker, uint32_t price, uint32_t count)
 {
-	get<0>(instrumentMap[instrument]).emplace_back(price, count);
+	Orderbook book = get<0>(instrumentMap.at(ticker));
+	book.add(price, count);
 }
 
-void Engine::updateSellBook(char instrument[9], float price, int count)
+void Engine::updateSellBook(std::string ticker, uint32_t price, uint32_t count)
 {
-	get<1>(instrumentMap[instrument]).emplace_back(price, count);
+	Orderbook book = get<1>(instrumentMap.at(ticker));
+	book.add(price, count);
 }
 
-Engine()
+Engine::Engine()
 {  
-	instrumentMap = new std::unordered_map< char[9], std::tuple<orderBook, orderBook> >();
+	orderBookHash instrumentMap;
 }
 
 Orderbook Engine::createBook()
@@ -46,17 +49,18 @@ void Engine::connection_thread(ClientConnection connection)
 			case ReadResult::EndOfFile: return;
 			case ReadResult::Success: break;
 		}
+		std::string ticker(input.instrument);
 
 		// Functions for printing output actions in the prescribed format are
 		// provided in the Output class:
 		switch(input.type)
 		{
 			case input_buy: {
-				Engine::updateBuyBook(input.instrument, input.price, input.count);
+				Engine::updateBuyBook(ticker, input.price, input.count);
 			}
 
 			case input_sell: {
-				Engine::updateSellBook(input.instrument, input.price, input.count);
+				Engine::updateSellBook(ticker, input.price, input.count);
 			}
 
 			case input_cancel: {

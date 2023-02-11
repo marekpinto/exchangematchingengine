@@ -15,15 +15,15 @@
 
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
-typedef std::vector< std::tuple<float,int> > orderBook;
+typedef std::unordered_map< std::string, std::tuple<Orderbook, Orderbook> > orderBookHash;
 
 struct Engine
 {
 public:
 	Engine();
 	void accept(ClientConnection conn);
-	void updateBuyBook(char instrument[9], float price, int count);
-	void updateSellBook(char instrument[9], float price, int count);
+	void updateBuyBook(std::string ticker, uint32_t price, uint32_t count);
+	void updateSellBook(std::string ticker, uint32_t price, uint32_t count);
 	Orderbook createBook();
 
 
@@ -31,7 +31,7 @@ private:
 	void connection_thread(ClientConnection conn);
 
 	// tracks a mapping from instrument names to a buy orderBook and sell orderBook, respectively.
-	std::unordered_map< std::string, std::tuple<orderBook, orderBook> > instrumentMap;
+	orderBookHash instrumentMap;
 
 };
 

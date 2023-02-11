@@ -15,8 +15,8 @@ public:
   const std::vector<std::tuple<float, int>>& getBook() const;
 
   // Mutators
-  void add_new(float price, int size);
-  void remove_from(int index);
+  void add(float price, int size);
+  void remove(int index);
 };
 
 #endif
