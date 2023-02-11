@@ -3,20 +3,22 @@
 
 #include <vector>
 #include <tuple>
+#include "io.hpp"
 
 struct Orderbook {
 
 public:
   // Arrays of tuples
-  std::vector<std::tuple<float, int>> book;
+  std::vector<std::tuple<uint32_t, uint32_t>> book;
 
   // Accessors
-  int length() const;
-  const std::vector<std::tuple<float, int>>& getBook() const;
+  int length();
+  std::vector<std::tuple<uint32_t, uint32_t>> getBook();
 
   // Mutators
-  void add(float price, int size);
+  void add(uint32_t price, uint32_t size);
   void remove(int index);
+  std::tuple<uint32_t, uint32_t> findMatch(CommandType cmd);
 };
 
 #endif
