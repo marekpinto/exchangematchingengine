@@ -28,8 +28,12 @@ Engine()
 	instrumentMap = new std::unordered_map< char[9], std::tuple<orderBook, orderBook> >();
 }
 
-Orderbook thisBook;
-thisBook.add_new(2.0,1);
+Orderbook Engine::createBook()
+{
+	Orderbook book;
+	return book;
+}
+
 
 void Engine::connection_thread(ClientConnection connection)
 {
