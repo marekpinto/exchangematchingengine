@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include "io.hpp"
+#include "orderbook.hpp"
 
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
@@ -22,6 +23,7 @@ public:
 	void accept(ClientConnection conn);
 	void updateBuyBook(char instrument[9], float price, int count);
 	void updateSellBook(char instrument[9], float price, int count);
+	Orderbook createBook();
 
 
 private:

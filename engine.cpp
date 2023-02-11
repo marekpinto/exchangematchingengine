@@ -23,10 +23,11 @@ void Engine::updateSellBook(char instrument[9], float price, int count)
 	get<1>(instrumentMap[instrument]).emplace_back(price, count);
 }
 
-/*Engine()
-{  
-	instrumentMap = new std::unordered_map< char[9], std::tuple<orderBook, orderBook> >();
-}*/
+Orderbook Engine::createBook()
+{
+	Orderbook book;
+	return book;
+}
 
 void Engine::connection_thread(ClientConnection connection)
 {

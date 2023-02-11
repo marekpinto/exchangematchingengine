@@ -4,7 +4,7 @@
 #include <vector>
 #include <tuple>
 
-struct orderbook {
+struct Orderbook {
 
 public:
   // Arrays of tuples
