@@ -4,6 +4,8 @@
 #include "io.hpp"
 #include "engine.hpp"
 
+#include "orderbook.hpp"
+
 //makes a thread every time a connection comes in
 void Engine::accept(ClientConnection connection) 
 {
