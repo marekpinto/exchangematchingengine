@@ -2,13 +2,16 @@
 #include <thread>
 #include <string>
 
+
 #include "io.hpp"
 #include "engine.hpp"
 
 #include "orderbook.hpp"
 
 //makes a thread every time a connection comes in
-void Engine::accept(ClientConnection connection) 
+
+void Engine::accept(ClientConnection connection)
+
 {
 	auto thread = std::thread(&Engine::connection_thread, this, std::move(connection));
 	thread.detach();
@@ -49,6 +52,7 @@ void Engine::connection_thread(ClientConnection connection)
 			case ReadResult::EndOfFile: return;
 			case ReadResult::Success: break;
 		}
+
 		std::string ticker(input.instrument);
 
 		// Functions for printing output actions in the prescribed format are
@@ -64,6 +68,7 @@ void Engine::connection_thread(ClientConnection connection)
 				Engine::updateSellBook(ticker, input.price, input.count);
 				break;
 			}
+
 
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;

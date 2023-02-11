@@ -5,6 +5,7 @@
 #define ENGINE_HPP
 
 #include <chrono>
+
 #include <vector>
 #include <tuple>
 #include <string>
@@ -16,6 +17,7 @@
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
 typedef std::unordered_map< std::string, std::tuple<Orderbook, Orderbook> > orderBookHash;
+
 
 struct Engine
 {
@@ -34,6 +36,7 @@ private:
 	orderBookHash instrumentMap;
 
 };
+
 
 
 
