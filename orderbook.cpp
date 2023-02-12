@@ -31,7 +31,7 @@ void Orderbook::remove(int index) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-uint32_t findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count) {
+uint32_t  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count) {
   switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
