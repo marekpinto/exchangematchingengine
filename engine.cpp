@@ -63,16 +63,6 @@ void Engine::connection_thread(ClientConnection connection)
 		// provided in the Output class:
 		switch(input.type)
 		{
-			case input_buy: {
-				Engine::handleOrder(ticker, input.type, input.price, input.count);
-				break;
-			}
-
-			case input_sell: {
-				Engine::handleOrder(ticker, input.type, input.price, input.count);
-				break;
-			}
-
 
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
@@ -92,6 +82,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
 				auto output_time = getCurrentTimestamp();
+				Engine::handleOrder(ticker, input.type, input.price, input.count);
 				Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
 				    output_time);
 				break;
