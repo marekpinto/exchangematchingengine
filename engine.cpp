@@ -108,3 +108,39 @@ void Engine::connection_thread(ClientConnection connection)
 		Output::OrderExecuted(123, 124, 1, 2000, 10, output_time);
 	}
 }
+
+bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count) {
+  // orderBookHash orderMap = f.getOrderBookMap();
+  // Retrieve otherBook param for findMatch
+  Orderbook otherBook;
+  switch (cmd) {
+  case input_buy: {
+    otherBook = get<1>(instrumentMap.at(ticker));
+    break;
+  }
+  case input_sell: {
+    otherBook = get<0>(instrumentMap.at(ticker));
+    break;
+  }
+  default: {
+	break;
+  }
+  // End switch
+  }
+  // Find a match such that shares are left
+  while (count > 0) {
+    count = findMatch(cmd, otherBook, price, count);
+  }
+  // If count is 0, order is handled
+  if (count == 0) {
+    return true;
+  }
+  // Otherwise, update buy book if count is non-zero
+  if (cmd == input_buy) {
+    updateBuyBook(ticker, price, count);
+  // Update sell book if command is sell
+  } else {
+    updateSellBook(ticker, price, count);
+  }
+  return false;
+}
