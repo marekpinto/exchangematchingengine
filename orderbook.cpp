@@ -6,16 +6,26 @@ int Orderbook::length() {
   return book.size();
 }
 
-std::vector<std::tuple<uint32_t, uint32_t>> Orderbook::getBook() {
+std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> Orderbook::getBook() {
   return book;
 }
 
-void Orderbook::add(uint32_t price, uint32_t size) {
-  book.push_back(std::make_tuple(price, size));
+void Orderbook::add(uint32_t price, uint32_t size, uint32_t id) {
+  book.push_back(std::make_tuple(price, size, id));
 }
 
 void Orderbook::remove(int index) {
   book.erase(book.begin() + index);
+}
+
+bool Orderbook::removeById(int id) {
+  for(int i = 0; i<book.size(); i++){
+    if (get<2>book[i] == id) {
+      book.erase(book.begin() + i);
+      return true;
+    }
+  }
+  return false;
 }
 
 /* 

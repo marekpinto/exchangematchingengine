@@ -9,15 +9,16 @@ struct Orderbook {
 
 public:
   // Arrays of tuples
-  std::vector<std::tuple<uint32_t, uint32_t>> book;
+  std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> book;
 
   // Accessors
   int length();
-  std::vector<std::tuple<uint32_t, uint32_t>> getBook();
+  std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> getBook();
 
   // Mutators
-  void add(uint32_t price, uint32_t size);
+  void add(uint32_t price, uint32_t size, uint32_t id);
   void remove(int index);
+  bool removeById(int id);
   uint32_t static findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count);
 };
 

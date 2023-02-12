@@ -10,33 +10,37 @@
 
 //makes a thread every time a connection comes in
 
+Engine::Engine()
+{  
+	orderBookHash instrumentMap;
+}
+
 void Engine::accept(ClientConnection connection)
 {
 	auto thread = std::thread(&Engine::connection_thread, this, std::move(connection));
 	thread.detach();
 }
 
-void Engine::updateBuyBook(std::string ticker, uint32_t price, uint32_t count)
+void Engine::updateBuyBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
 {
+	if (!book.contains(ticker)){
+		instrumentMap.insert({ticker, std::make_tuple(new Orderbook(), new Orderbook())});
+	}
 	Orderbook book = get<0>(instrumentMap.at(ticker));
-	book.add(price, count);
+	book.add(price, count, id);
+	
 }
 
-void Engine::updateSellBook(std::string ticker, uint32_t price, uint32_t count)
+void Engine::updateSellBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
 {
+	if (!book.contains(ticker)){
+		instrumentMap.insert({ticker, std::make_tuple(new Orderbook(), new Orderbook())});
+	}
 	Orderbook book = get<1>(instrumentMap.at(ticker));
-	book.add(price, count);
+	book.add(price, count, id);
 }
 
-Engine::Engine()
-{  
-	orderBookHash instrumentMap;
-}
 
-orderBookHash Engine::getOrderBookMap()
-{
-	return instrumentMap;
-}
 
 Orderbook Engine::createBook()
 {
@@ -47,6 +51,7 @@ Orderbook Engine::createBook()
 
 void Engine::connection_thread(ClientConnection connection)
 {
+	std::unordered_map<int, Orderbook> orders;
 	while(true)
 	{
 		ClientCommand input {};
@@ -70,7 +75,15 @@ void Engine::connection_thread(ClientConnection connection)
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
 				auto output_time = getCurrentTimestamp();
-				Output::OrderDeleted(input.order_id, true, output_time);
+				if (orders.contains(input.order_id)) {
+					bool result = orders.at(input.order_id).removeById(input.order_id);
+					if (result) {
+						Output::OrderDeleted(input.order_id, true, output_time);
+						orders.erase(input.order_id);
+						break;
+					}
+				}
+				Output::OrderDeleted(input.order_id, false, output_time);
 				break;
 			}
 
@@ -82,9 +95,17 @@ void Engine::connection_thread(ClientConnection connection)
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
 				auto output_time = getCurrentTimestamp();
-				Engine::handleOrder(ticker, input.type, input.price, input.count);
-				Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
-				    output_time);
+				bool result = Engine::handleOrder(ticker, input.type, input.price, input.count, input.order_id);
+				if (!result){
+					if (input.type == input_buy) {
+						orders.insert({input.order_id, get<0>instrumentMap.at(ticker)});
+					else if (input.type == input_sell) {
+						orders.insert({input.order_id, get<1>instrumentMap.at(ticker)});
+					}
+				}
+
+				//Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
+				 //   output_time);
 				break;
 			}
 		}

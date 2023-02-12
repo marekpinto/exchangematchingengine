@@ -24,17 +24,17 @@ struct Engine
 public:
 	Engine();
 	void accept(ClientConnection conn);
-	void updateBuyBook(std::string ticker, uint32_t price, uint32_t count);
-	void updateSellBook(std::string ticker, uint32_t price, uint32_t count);
+	void updateBuyBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id);
+	void updateSellBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id);
 	bool handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count);
 	Orderbook createBook();
-	orderBookHash getOrderBookMap();
+	orderBookHash instrumentMap;
 
 private:
 	void connection_thread(ClientConnection conn);
 
 	// tracks a mapping from instrument names to a buy orderBook and sell orderBook, respectively.
-	orderBookHash instrumentMap;
+	//orderBookHash instrumentMap;
 
 };
 
