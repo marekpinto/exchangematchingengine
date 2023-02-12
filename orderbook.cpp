@@ -97,36 +97,3 @@ uint32_t findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_
   }
 }
 
-void handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count) {
-  Engine f;
-  orderBookHash orderMap = f.getOrderBookMap();
-  // Retrieve otherBook param for findMatch
-  Orderbook otherBook;
-  switch (cmd) {
-  case input_buy: {
-    otherBook = get<0>(orderMap.at(ticker));
-    break;
-  }
-  case input_sell: {
-    otherBook = get<1>(orderMap.at(ticker));
-    break;
-  }
-  default: {}
-  // End switch
-  }
-  // Find a match such that shares are left
-  while (count > 0) {
-    count = findMatch(cmd, otherBook, price, count);
-  }
-  // If count is 0, order is handled
-  if (count == 0) {
-    return;
-  }
-  // Otherwise, update buy book if count is non-zero
-  if (cmd == input_buy) {
-    f.updateBuyBook(ticker, price, count);
-  // Update sell book if command is sell
-  } else {
-    f.updateSellBook(ticker, price, count);
-  }
-}
