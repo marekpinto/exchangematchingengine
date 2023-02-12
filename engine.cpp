@@ -64,12 +64,12 @@ void Engine::connection_thread(ClientConnection connection)
 		switch(input.type)
 		{
 			case input_buy: {
-				Engine::updateBuyBook(ticker, input.price, input.count);
+				Engine::handleOrder(ticker, input.type, input.price, input.count);
 				break;
 			}
 
 			case input_sell: {
-				Engine::updateSellBook(ticker, input.price, input.count);
+				Engine::handleOrder(ticker, input.type, input.price, input.count);
 				break;
 			}
 
@@ -110,7 +110,6 @@ void Engine::connection_thread(ClientConnection connection)
 }
 
 bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count) {
-  // orderBookHash orderMap = f.getOrderBookMap();
   // Retrieve otherBook param for findMatch
   Orderbook otherBook;
   switch (cmd) {
@@ -129,7 +128,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, ui
   }
   // Find a match such that shares are left
   while (count > 0) {
-    count = findMatch(cmd, otherBook, price, count);
+    count = Orderbook::findMatch(cmd, otherBook, price, count);
   }
   // If count is 0, order is handled
   if (count == 0) {
