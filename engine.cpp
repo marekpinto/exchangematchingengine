@@ -11,7 +11,6 @@
 //makes a thread every time a connection comes in
 
 void Engine::accept(ClientConnection connection)
-
 {
 	auto thread = std::thread(&Engine::connection_thread, this, std::move(connection));
 	thread.detach();
@@ -32,6 +31,11 @@ void Engine::updateSellBook(std::string ticker, uint32_t price, uint32_t count)
 Engine::Engine()
 {  
 	orderBookHash instrumentMap;
+}
+
+orderBookHash Engine::getOrderBookMap()
+{
+	return instrumentMap;
 }
 
 Orderbook Engine::createBook()

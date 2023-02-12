@@ -27,7 +27,7 @@ public:
 	void updateBuyBook(std::string ticker, uint32_t price, uint32_t count);
 	void updateSellBook(std::string ticker, uint32_t price, uint32_t count);
 	Orderbook createBook();
-
+	orderBookHash getOrderBookMap();
 
 private:
 	void connection_thread(ClientConnection conn);
