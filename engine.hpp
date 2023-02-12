@@ -16,7 +16,7 @@
 
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
-typedef std::unordered_map< std::string, std::tuple<Orderbook, Orderbook> > orderBookHash;
+typedef std::unordered_map< std::string, std::tuple<Orderbook *, Orderbook *> > orderBookHash;
 
 
 struct Engine
@@ -26,7 +26,7 @@ public:
 	void accept(ClientConnection conn);
 	void updateBuyBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id);
 	void updateSellBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id);
-	bool handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count);
+	bool handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count, uint32_t id);
 	Orderbook createBook();
 	orderBookHash instrumentMap;
 

@@ -18,9 +18,9 @@ void Orderbook::remove(int index) {
   book.erase(book.begin() + index);
 }
 
-bool Orderbook::removeById(int id) {
-  for(int i = 0; i<book.size(); i++){
-    if (get<2>book[i] == id) {
+bool Orderbook::removeById(uint32_t id) {
+  for(uint32_t i = 0; i<book.size(); i++){
+    if (get<2>(book[i]) == id) {
       book.erase(book.begin() + i);
       return true;
     }

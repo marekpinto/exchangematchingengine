@@ -23,20 +23,13 @@ void Engine::accept(ClientConnection connection)
 
 void Engine::updateBuyBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
 {
-	if (!book.contains(ticker)){
-		instrumentMap.insert({ticker, std::make_tuple(new Orderbook(), new Orderbook())});
-	}
-	Orderbook book = get<0>(instrumentMap.at(ticker));
-	book.add(price, count, id);
-	
+	Orderbook book = *get<0>(instrumentMap.at(ticker));
+	book.add(price, count, id);	
 }
 
 void Engine::updateSellBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
 {
-	if (!book.contains(ticker)){
-		instrumentMap.insert({ticker, std::make_tuple(new Orderbook(), new Orderbook())});
-	}
-	Orderbook book = get<1>(instrumentMap.at(ticker));
+	Orderbook book = *get<1>(instrumentMap.at(ticker));
 	book.add(price, count, id);
 }
 
@@ -51,7 +44,7 @@ Orderbook Engine::createBook()
 
 void Engine::connection_thread(ClientConnection connection)
 {
-	std::unordered_map<int, Orderbook> orders;
+	std::unordered_map<uint32_t, Orderbook *> orders;
 	while(true)
 	{
 		ClientCommand input {};
@@ -76,7 +69,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// an appropriate timestamp!
 				auto output_time = getCurrentTimestamp();
 				if (orders.contains(input.order_id)) {
-					bool result = orders.at(input.order_id).removeById(input.order_id);
+					bool result = orders.at(input.order_id) -> removeById(input.order_id);
 					if (result) {
 						Output::OrderDeleted(input.order_id, true, output_time);
 						orders.erase(input.order_id);
@@ -98,14 +91,15 @@ void Engine::connection_thread(ClientConnection connection)
 				bool result = Engine::handleOrder(ticker, input.type, input.price, input.count, input.order_id);
 				if (!result){
 					if (input.type == input_buy) {
-						orders.insert({input.order_id, get<0>instrumentMap.at(ticker)});
+						orders.emplace(input.order_id, get<0>(instrumentMap.at(ticker)));
+					}
 					else if (input.type == input_sell) {
-						orders.insert({input.order_id, get<1>instrumentMap.at(ticker)});
+						orders.emplace(input.order_id, get<1>(instrumentMap.at(ticker)));
 					}
 				}
 
-				//Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
-				 //   output_time);
+				Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
+				   output_time);
 				break;
 			}
 		}
@@ -121,16 +115,19 @@ void Engine::connection_thread(ClientConnection connection)
 	}
 }
 
-bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count) {
+bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count, uint32_t id) {
   // Retrieve otherBook param for findMatch
+  if (!instrumentMap.contains(ticker)){
+		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
+	}
   Orderbook otherBook;
   switch (cmd) {
   case input_buy: {
-    otherBook = get<1>(instrumentMap.at(ticker));
+    otherBook = *get<1>(instrumentMap.at(ticker));
     break;
   }
   case input_sell: {
-    otherBook = get<0>(instrumentMap.at(ticker));
+    otherBook = *get<0>(instrumentMap.at(ticker));
     break;
   }
   default: {
@@ -148,10 +145,10 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, ui
   }
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
-    updateBuyBook(ticker, price, count);
+    updateBuyBook(ticker, price, count, id);
   // Update sell book if command is sell
   } else {
-    updateSellBook(ticker, price, count);
+    updateSellBook(ticker, price, count, id);
   }
   return false;
 }

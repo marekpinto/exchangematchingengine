@@ -18,7 +18,7 @@ public:
   // Mutators
   void add(uint32_t price, uint32_t size, uint32_t id);
   void remove(int index);
-  bool removeById(int id);
+  bool removeById(uint32_t id);
   uint32_t static findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count);
 };
 
