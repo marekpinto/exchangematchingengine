@@ -87,7 +87,7 @@ void Engine::connection_thread(ClientConnection connection)
 
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
-				auto output_time = getCurrentTimestamp();
+				// auto output_time = getCurrentTimestamp();
 				bool result = Engine::handleOrder(ticker, input.type, input.price, input.count, input.order_id);
 				if (!result){
 					if (input.type == input_buy) {
@@ -98,8 +98,8 @@ void Engine::connection_thread(ClientConnection connection)
 					}
 				}
 
-				Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
-				   output_time);
+				// Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
+				//    output_time);
 				break;
 			}
 		}
@@ -137,7 +137,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, ui
   }
   // Find a match such that shares are left
   while (count > 0) {
-    count = Orderbook::findMatch(cmd, otherBook, price, count);
+    count = Orderbook::findMatch(cmd, otherBook, price, count, id);
   }
   // If count is 0, order is handled
   if (count == 0) {
@@ -146,9 +146,11 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, ui
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
     updateBuyBook(ticker, price, count, id);
+	Output::OrderAdded(id, ticker.c_str(), price, count, cmd == input_sell, getCurrentTimestamp());
   // Update sell book if command is sell
   } else {
     updateSellBook(ticker, price, count, id);
+	Output::OrderAdded(id, ticker.c_str(), price, count, cmd == input_sell, getCurrentTimestamp());
   }
   return false;
 }

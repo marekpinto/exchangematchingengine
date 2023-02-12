@@ -1,6 +1,7 @@
 #include "orderbook.hpp"
 #include "engine.hpp"
 #include <tuple>
+#include "io.hpp"
 
 int Orderbook::length() {
   return book.size();
@@ -41,7 +42,8 @@ bool Orderbook::removeById(uint32_t id) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-uint32_t  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count) {
+uint32_t  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count, uint32_t activeId) {
+  uint32_t executionId = 1;
   switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
@@ -60,10 +62,12 @@ uint32_t  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t pr
         // If we want to buy more than we're selling, lower our count and remove the sell order
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
           count -= get<1>(otherBook.getBook()[bestIndex]);
+          Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, executionId, get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
           otherBook.remove(bestIndex);
         // Otherwise, set our count to 0 and lower the count of the sell order
         }  else {
           get<1>(otherBook.getBook()[bestIndex]) -= count;
+          Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, executionId, get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
           count = 0;
         }
         // Return 0 if our order is sold, or how many we still need to buy
@@ -89,10 +93,12 @@ uint32_t  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t pr
       if (bestIndex != -1) {
         // If we are selling more than they are buying, remove the buyer and lower our sell count
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
+          Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, executionId, get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
           count -= get<1>(otherBook.getBook()[bestIndex]);
           otherBook.remove(bestIndex);
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
+          Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, executionId, get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
           get<1>(otherBook.getBook()[bestIndex]) -= count;
           count = 0;
         }
