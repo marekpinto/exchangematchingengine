@@ -19,7 +19,6 @@ public:
   void add(uint32_t price, uint32_t size);
   void remove(int index);
   std::tuple<uint32_t, uint32_t> findMatch(CommandType cmd);
-  void handleOrder(CommandType cmd, uint32_t price, uint32_t count);
 };
 
 #endif
