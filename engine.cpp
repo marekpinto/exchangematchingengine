@@ -70,7 +70,7 @@ void Engine::connection_thread(ClientConnection connection)
 				auto output_time = getCurrentTimestamp();
 				if (orders.contains(input.order_id)) {
 					bool result = orders.at(input.order_id) -> removeById(input.order_id);
-					//std::cerr << "Result: " << result << std::endl;
+					std::cerr << "Result: " << result << std::endl;
 					if (result) {
 						Output::OrderDeleted(input.order_id, true, output_time);
 						orders.erase(input.order_id);

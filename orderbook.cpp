@@ -113,14 +113,14 @@ switch (cmd) {
       }
       // If we found a buyer...
       if (bestIndex != -1) {
-        get<3>(otherBook.getBook()[bestIndex]) += 1;
+        get<3>(otherBookRef->getBook()[bestIndex]) += 1;
         // If we are selling more than they are buying, remove the buyer and lower our sell count
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
           count -= get<1>(otherBook.getBook()[bestIndex]);
           otherBook.print_counts();
   //std::cerr <<  "Size: " << otherBook.length() << std::endl;
-	  otherBook.remove(bestIndex);
+	  otherBookRef->remove(bestIndex);
   //std::cerr <<  "Size: " << otherBook.length() << std::endl;
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
