@@ -110,8 +110,6 @@ void Engine::connection_thread(ClientConnection connection)
 
 		// Remember to take timestamp at the appropriate time, or compute
 		// an appropriate timestamp!
-		intmax_t output_time = getCurrentTimestamp();
-
 	}
 }
 
