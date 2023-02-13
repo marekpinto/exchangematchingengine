@@ -70,6 +70,7 @@ void Engine::connection_thread(ClientConnection connection)
 				auto output_time = getCurrentTimestamp();
 				if (orders.contains(input.order_id)) {
 					bool result = orders.at(input.order_id) -> removeById(input.order_id);
+					std::cerr << "Result: " << result << std::endl;
 					if (result) {
 						Output::OrderDeleted(input.order_id, true, output_time);
 						orders.erase(input.order_id);
@@ -77,6 +78,7 @@ void Engine::connection_thread(ClientConnection connection)
 					}
 				}
 				Output::OrderDeleted(input.order_id, false, output_time);
+				std::cerr << "Breaking from switch" << std::endl;
 				break;
 			}
 
@@ -89,7 +91,6 @@ void Engine::connection_thread(ClientConnection connection)
 				// an appropriate timestamp!
 				// auto output_time = getCurrentTimestamp();
 				bool result = Engine::handleOrder(ticker, input.type, input.price, input.count, input.order_id);
-				std::cerr << result << std::endl;
 				if (!result){
 					if (input.type == input_buy) {
 						orders.emplace(input.order_id, get<0>(instrumentMap.at(ticker)));
@@ -122,7 +123,6 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, in
 		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
   }
   Orderbook otherBook;
-  std::cerr << cmd << std::endl;
   switch (cmd) {
   case input_buy: {
     otherBook = *get<1>(instrumentMap.at(ticker));
@@ -140,13 +140,11 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, in
 
   // Find a match such that shares are left
   while (count > 0) {
-	std::cerr << count << std::endl;
     count = Orderbook::findMatch(cmd, otherBook, price, count, id);
     if (count == -1) {
 		break;
 	}
   }
-  std::cerr << count << std::endl;
   // If count is 0, order is handled
   if (count == 0) {
     return true;

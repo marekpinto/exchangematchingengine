@@ -57,6 +57,7 @@ int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, 
         }
       }
       // If we found a seller...
+      std::cerr << "Best Index: " << bestIndex << std::endl;
       if (bestIndex != -1) {
         get<3>(otherBook.getBook()[bestIndex]) += 1;
         // If we want to buy more than we're selling, lower our count and remove the sell order
