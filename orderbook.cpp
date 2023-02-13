@@ -61,7 +61,7 @@ switch (cmd) {
       // Track the index of the tuple for the seller with lowest price
       int bestIndex = -1;
       // Loop through the sell book vector and find the lowest seller
-      for(int i = 0; i<otherBook.length(); i++) {
+      for(int i = otherBook.length()-1; i>=0; i--) {
         if (get<0>(otherBook.getBook()[i]) <= sellPrice) {
           sellPrice = get<0>(otherBook.getBook()[i]);
           bestIndex = i;
@@ -105,7 +105,7 @@ switch (cmd) {
       int buyPrice = price;
       int bestIndex = -1;
       // Loop through the vector to find the highest seller
-      for(int i = 0; i<otherBook.length(); i++) {
+      for(int i = otherBook.length()-1; i>=0; i--) {
         if (get<0>(otherBook.getBook()[i]) >= buyPrice) {
           buyPrice = get<0>(otherBook.getBook()[i]);
           bestIndex = i;
