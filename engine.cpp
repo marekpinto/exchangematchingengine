@@ -23,14 +23,14 @@ void Engine::accept(ClientConnection connection)
 
 void Engine::updateBuyBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
 {
-	Orderbook book = *get<0>(instrumentMap.at(ticker));
-	book.add(price, count, id);	
+	Orderbook * book = get<0>(instrumentMap.at(ticker));
+	book->add(price, count, id);	
 }
 
 void Engine::updateSellBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
 {
-	Orderbook book = *get<1>(instrumentMap.at(ticker));
-	book.add(price, count, id);
+	Orderbook * book = get<1>(instrumentMap.at(ticker));
+	book->add(price, count, id);
 }
 
 
