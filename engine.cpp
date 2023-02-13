@@ -119,24 +119,20 @@ void Engine::connection_thread(ClientConnection connection)
 bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, int count, uint32_t id) {
   // Retrieve otherBook param for findMatch
   if (!instrumentMap.contains(ticker)){
-	  	std::cerr << "adding to instrumentMap" << std::endl;
 		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
-	}
+  }
   Orderbook otherBook;
   std::cerr << cmd << std::endl;
   switch (cmd) {
   case input_buy: {
-	std::cerr << "BUY" << std::endl;
     otherBook = *get<1>(instrumentMap.at(ticker));
     break;
   }
   case input_sell: {
-	std::cerr << "SELL" << std::endl;
     otherBook = *get<0>(instrumentMap.at(ticker));
     break;
   }
   default: {
-	std::cerr << "BAD" << std::endl;
 	break;
   }
   // End switch
@@ -147,9 +143,10 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, in
 	std::cerr << count << std::endl;
     count = Orderbook::findMatch(cmd, otherBook, price, count, id);
     if (count == -1) {
-	break;
+		break;
 	}
   }
+  std::cerr << count << std::endl;
   // If count is 0, order is handled
   if (count == 0) {
     return true;
