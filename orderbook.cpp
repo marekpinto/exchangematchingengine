@@ -52,8 +52,9 @@ bool Orderbook::removeById(int id) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, int price, int count, int activeId) {
-  switch (cmd) {
+int  Orderbook::findMatch(CommandType cmd, Orderbook* otherBookRef, int price, int count, int activeId) {
+Orderbook otherBook = *otherBookRef;  
+switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
       int sellPrice = price;
@@ -69,7 +70,7 @@ int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, int price, int c
       // If we found a seller...
      // std::cerr << "Best Index: " << bestIndex << std::endl;
       if (bestIndex != -1) {
-        get<3>(otherBook.getBook()[bestIndex]) += 1;
+        get<3>(otherBookRef->getBook()[bestIndex]) += 1;
         // If we want to buy more than we're selling, lower our count and remove the sell order
 	//std::cerr << "Count: " << count << std::endl;
 	//std::cerr << "Compared to: " << get<1>(otherBook.getBook()[bestIndex]) << std::endl;
@@ -80,7 +81,7 @@ int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, int price, int c
 	  //std::cerr << "Executing! 1" << std::endl;
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
   //std::cerr <<  "Size: " << otherBook.length() << std::endl;        
-	  otherBook.remove(bestIndex);
+	  otherBookRef->remove(bestIndex);
 //std::cerr <<  "Size: " << otherBook.length() << std::endl;
 
         // Otherwise, set our count to 0 and lower the count of the sell order

@@ -119,14 +119,14 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   if (!instrumentMap.contains(ticker)){
 		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
   }
-  Orderbook otherBook;
+  Orderbook* otherBook;
   switch (cmd) {
   case input_buy: {
-    otherBook = *get<1>(instrumentMap.at(ticker));
+    otherBook = get<1>(instrumentMap.at(ticker));
     break;
   }
   case input_sell: {
-    otherBook = *get<0>(instrumentMap.at(ticker));
+    otherBook = get<0>(instrumentMap.at(ticker));
     break;
   }
   default: {
