@@ -7,11 +7,11 @@ int Orderbook::length() {
   return book.size();
 }
 
-std::vector<std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>> Orderbook::getBook() {
+std::vector<std::tuple<int, int, int, int>> Orderbook::getBook() {
   return book;
 }
 
-void Orderbook::add(uint32_t price, uint32_t size, uint32_t id) {
+void Orderbook::add(int price, int size, int id) {
   book.push_back(std::make_tuple(price, size, id, 1));
 }
 
@@ -19,8 +19,8 @@ void Orderbook::remove(int index) {
   book.erase(book.begin() + index);
 }
 
-bool Orderbook::removeById(uint32_t id) {
-  for(uint32_t i = 0; i<book.size(); i++){
+bool Orderbook::removeById(int id) {
+  for(int i = 0; i<book.size(); i++){
     if (get<2>(book[i]) == id) {
       book.erase(book.begin() + i);
       return true;
@@ -42,11 +42,11 @@ bool Orderbook::removeById(uint32_t id) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count, uint32_t activeId) {
+int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, int price, int count, int activeId) {
   switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
-      uint32_t sellPrice = price;
+      int sellPrice = price;
       // Track the index of the tuple for the seller with lowest price
       int bestIndex = -1;
       // Loop through the sell book vector and find the lowest seller
@@ -81,7 +81,7 @@ int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, 
     }
     case input_sell: {
       // Set buy price equal to sell price
-      uint32_t buyPrice = price;
+      int buyPrice = price;
       int bestIndex = -1;
       // Loop through the vector to find the highest seller
       for(int i = 0; i<otherBook.length(); i++) {
