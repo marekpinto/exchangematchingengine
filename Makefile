@@ -2,7 +2,7 @@ CC = clang
 CXX = clang++
 
 CFLAGS := $(CFLAGS) -g -O3 -Wall -Wextra -pedantic -Werror -std=c18 -pthread
-CXXFLAGS := $(CXXFLAGS) -g -O3 -Wall -Wextra -pedantic -Werror -std=c++20 -pthread
+CXXFLAGS := $(CXXFLAGS) -g -v -O3 -Wall -Wextra -pedantic -Werror -std=c++20 -pthread
 
 BUILDDIR = build
 
@@ -22,7 +22,7 @@ clean:
 	rm -rf $(BUILDDIR)
 	rm -f client engine
 
-DEPFLAGS = -MT $@ -MMD -MP -MF $(BUILDDIR)/$<.d
+DEPFLAGS = -v -MT $@ -MMD -MP -MF $(BUILDDIR)/$<.d
 COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
 $(BUILDDIR)/%.cpp.o: %.cpp | $(BUILDDIR)

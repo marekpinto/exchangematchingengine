@@ -112,8 +112,6 @@ void Engine::connection_thread(ClientConnection connection)
 		// an appropriate timestamp!
 		intmax_t output_time = getCurrentTimestamp();
 
-		// Check the parameter names in `io.hpp`.
-		Output::OrderExecuted(123, 124, 1, 2000, 10, output_time);
 	}
 }
 
