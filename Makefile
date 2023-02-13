@@ -22,7 +22,7 @@ clean:
 	rm -rf $(BUILDDIR)
 	rm -f client engine
 
-DEPFLAGS = -v -MT $@ -MMD -MP -MF $(BUILDDIR)/$<.d
+DEPFLAGS =  -MT $@ -MMD -MP -MF $(BUILDDIR)/$<.d
 COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
 $(BUILDDIR)/%.cpp.o: %.cpp | $(BUILDDIR)

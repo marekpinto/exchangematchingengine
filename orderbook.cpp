@@ -11,16 +11,25 @@ std::vector<std::tuple<int, int, int, int>> Orderbook::getBook() {
   return book;
 }
 
+void Orderbook::print_counts() {
+	for (int i = 0; i < (int)book.size(); i++) {
+		std::cerr << i << " count: " << get<1>(book[i]) << std::endl;
+	}
+}
+
 void Orderbook::add(int price, int size, int id) {
   book.push_back(std::make_tuple(price, size, id, 1));
+  //this->print_counts();
 }
 
 void Orderbook::remove(int index) {
+
   book.erase(book.begin() + index);
+
 }
 
 bool Orderbook::removeById(int id) {
-  for(int i = 0; i<book.size(); i++){
+  for(int i = 0; i<(int)book.size(); i++){
     if (get<2>(book[i]) == id) {
   	std::cerr << "i: " << i << std::endl;
 	book.erase(book.begin() + i);
@@ -58,22 +67,27 @@ int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, int price, int c
         }
       }
       // If we found a seller...
-      std::cerr << "Best Index: " << bestIndex << std::endl;
+     // std::cerr << "Best Index: " << bestIndex << std::endl;
       if (bestIndex != -1) {
         get<3>(otherBook.getBook()[bestIndex]) += 1;
         // If we want to buy more than we're selling, lower our count and remove the sell order
-	std::cerr << "Count: " << count << std::endl;
-	std::cerr << "Compared to: " << get<1>(otherBook.getBook()[bestIndex]) << std::endl;
+	//std::cerr << "Count: " << count << std::endl;
+	//std::cerr << "Compared to: " << get<1>(otherBook.getBook()[bestIndex]) << std::endl;
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
-		std::cerr << "Correct Conditional" << std::endl;	
+		//std::cerr << "Correct Conditional" << std::endl;	
 	count -= get<1>(otherBook.getBook()[bestIndex]);
-	  std::cerr << "Executing! 1" << std::endl;
+	otherBook.print_counts();
+	  //std::cerr << "Executing! 1" << std::endl;
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
-          otherBook.remove(bestIndex);
+  //std::cerr <<  "Size: " << otherBook.length() << std::endl;        
+	  otherBook.remove(bestIndex);
+//std::cerr <<  "Size: " << otherBook.length() << std::endl;
+
         // Otherwise, set our count to 0 and lower the count of the sell order
         }  else {
           get<1>(otherBook.getBook()[bestIndex]) -= count;
-	  std::cerr << "Executing! 2" << std::endl;
+	  otherBook.print_counts();
+	 // std::cerr << "Executing! 2" << std::endl;
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
           count = 0;
         }
@@ -103,12 +117,16 @@ int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, int price, int c
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
           count -= get<1>(otherBook.getBook()[bestIndex]);
-          otherBook.remove(bestIndex);
+          otherBook.print_counts();
+  //std::cerr <<  "Size: " << otherBook.length() << std::endl;
+	  otherBook.remove(bestIndex);
+  //std::cerr <<  "Size: " << otherBook.length() << std::endl;
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
           get<1>(otherBook.getBook()[bestIndex]) -= count;
-          count = 0;
+          otherBook.print_counts();
+	  count = 0;
         }
         // Same return logic as buying
         return count;

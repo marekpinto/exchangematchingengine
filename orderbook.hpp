@@ -14,7 +14,7 @@ public:
   // Accessors
   int length();
   std::vector<std::tuple<int, int, int, int>> getBook();
-
+  void print_counts();
   // Mutators
   void add(int price, int size, int id);
   void remove(int index);
