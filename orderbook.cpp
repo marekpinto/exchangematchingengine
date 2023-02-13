@@ -42,7 +42,7 @@ bool Orderbook::removeById(uint32_t id) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-uint32_t  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count, uint32_t activeId) {
+int  Orderbook::findMatch(CommandType cmd, Orderbook otherBook, uint32_t price, uint32_t count, uint32_t activeId) {
   switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price

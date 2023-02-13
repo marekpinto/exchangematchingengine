@@ -89,6 +89,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// an appropriate timestamp!
 				// auto output_time = getCurrentTimestamp();
 				bool result = Engine::handleOrder(ticker, input.type, input.price, input.count, input.order_id);
+				std::cerr << result << std::endl;
 				if (!result){
 					if (input.type == input_buy) {
 						orders.emplace(input.order_id, get<0>(instrumentMap.at(ticker)));
@@ -115,29 +116,39 @@ void Engine::connection_thread(ClientConnection connection)
 	}
 }
 
-bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count, uint32_t id) {
+bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, int count, uint32_t id) {
   // Retrieve otherBook param for findMatch
   if (!instrumentMap.contains(ticker)){
+	  	std::cerr << "adding to instrumentMap" << std::endl;
 		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
 	}
   Orderbook otherBook;
+  std::cerr << cmd << std::endl;
   switch (cmd) {
   case input_buy: {
+	std::cerr << "BUY" << std::endl;
     otherBook = *get<1>(instrumentMap.at(ticker));
     break;
   }
   case input_sell: {
+	std::cerr << "SELL" << std::endl;
     otherBook = *get<0>(instrumentMap.at(ticker));
     break;
   }
   default: {
+	std::cerr << "BAD" << std::endl;
 	break;
   }
   // End switch
   }
+
   // Find a match such that shares are left
   while (count > 0) {
+	std::cerr << count << std::endl;
     count = Orderbook::findMatch(cmd, otherBook, price, count, id);
+    if (count == -1) {
+	break;
+	}
   }
   // If count is 0, order is handled
   if (count == 0) {

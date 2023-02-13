@@ -26,7 +26,7 @@ public:
 	void accept(ClientConnection conn);
 	void updateBuyBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id);
 	void updateSellBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id);
-	bool handleOrder(std::string ticker, CommandType cmd, uint32_t price, uint32_t count, uint32_t id);
+	bool handleOrder(std::string ticker, CommandType cmd, uint32_t price, int count, uint32_t id);
 	Orderbook createBook();
 	orderBookHash instrumentMap;
 
