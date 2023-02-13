@@ -21,13 +21,13 @@ void Engine::accept(ClientConnection connection)
 	thread.detach();
 }
 
-void Engine::updateBuyBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
+void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
 {
 	Orderbook * book = get<0>(instrumentMap.at(ticker));
 	book->add(price, count, id);	
 }
 
-void Engine::updateSellBook(std::string ticker, uint32_t price, uint32_t count, uint32_t id)
+void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 {
 	Orderbook * book = get<1>(instrumentMap.at(ticker));
 	book->add(price, count, id);
@@ -44,7 +44,7 @@ Orderbook Engine::createBook()
 
 void Engine::connection_thread(ClientConnection connection)
 {
-	std::unordered_map<uint32_t, Orderbook *> orders;
+	std::unordered_map<int, Orderbook *> orders;
 	while(true)
 	{
 		ClientCommand input {};
@@ -77,7 +77,7 @@ void Engine::connection_thread(ClientConnection connection)
 						break;
 					}
 				}
-				Output::OrderDeleted(input.order_id, false, output_time);
+				Output::OrderDeleted(input.order_id, false, output_time); 
 				std::cerr << "Breaking from switch" << std::endl;
 				break;
 			}
@@ -113,7 +113,7 @@ void Engine::connection_thread(ClientConnection connection)
 	}
 }
 
-bool Engine::handleOrder(std::string ticker, CommandType cmd, uint32_t price, int count, uint32_t id) {
+bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
   // Retrieve otherBook param for findMatch
   if (!instrumentMap.contains(ticker)){
 		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
