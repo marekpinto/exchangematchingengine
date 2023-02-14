@@ -111,11 +111,8 @@ switch (cmd) {
           get<1>(otherBook.getBook()[bestIndex]) -= count;
 	        count = 0;
         }
-        // Same return logic as buying
-        return count;
-      } else {
-        return -1;
       }
+      return count;
       break;
     }
     default: {return -2;}
