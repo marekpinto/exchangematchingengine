@@ -20,7 +20,7 @@ void Orderbook::print_counts() {
 
 void Orderbook::add(int price, int size, int id) {
   std::lock_guard<std::mutex> lk(mut);
-  book.push_back(std::make_tuple(price, size, id, 1));
+  book.push_back(std::make_tuple(price, size, id, 0));
 }
 
 void Orderbook::remove(int index) {
