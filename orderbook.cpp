@@ -38,6 +38,10 @@ bool Orderbook::removeById(int id) {
   return false;
 }
 
+void Orderbook::incrementExId(int index) {
+  get<3>(book[index]) += 1;
+}
+
 /* 
   Input:
    - Command type of buy or sell
@@ -68,7 +72,7 @@ switch (cmd) {
       }
       // If we found a seller...
       if (bestIndex != -1) {
-        get<3>(otherBookRef->getBook()[bestIndex]) += 1;
+        otherBookRef->incrementExId(bestIndex);
         // If we want to buy more than we're selling, lower our count and remove the sell order
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
 	        count -= get<1>(otherBook.getBook()[bestIndex]);
@@ -99,7 +103,7 @@ switch (cmd) {
       }
       // If we found a buyer...
       if (bestIndex != -1) {
-        get<3>(otherBookRef->getBook()[bestIndex]) += 1;
+        otherBookRef->incrementExId(bestIndex);
         // If we are selling more than they are buying, remove the buyer and lower our sell count
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());

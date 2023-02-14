@@ -16,6 +16,7 @@ public:
   std::vector<std::tuple<int, int, int, int>> getBook();
   void print_counts();
   // Mutators
+  void incrementExId(int index);
   void add(int price, int size, int id);
   void remove(int index);
   bool removeById(int id);
