@@ -70,7 +70,6 @@ void Engine::connection_thread(ClientConnection connection)
 				auto output_time = getCurrentTimestamp();
 				if (orders.contains(input.order_id)) {
 					bool result = orders.at(input.order_id) -> removeById(input.order_id);
-					std::cerr << "Result: " << result << std::endl;
 					if (result) {
 						Output::OrderDeleted(input.order_id, true, output_time);
 						orders.erase(input.order_id);
@@ -78,7 +77,6 @@ void Engine::connection_thread(ClientConnection connection)
 					}
 				}
 				Output::OrderDeleted(input.order_id, false, output_time); 
-				//std::cerr << "Breaking from switch" << std::endl;
 				break;
 			}
 
@@ -99,9 +97,6 @@ void Engine::connection_thread(ClientConnection connection)
 						orders.emplace(input.order_id, get<1>(instrumentMap.at(ticker)));
 					}
 				}
-
-				// Output::OrderAdded(input.order_id, input.instrument, input.price, input.count, input.type == input_sell,
-				//    output_time);
 				break;
 			}
 		}
@@ -136,10 +131,8 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   }
 
   // Find a match such that shares are left
-  //while (count > 0) {
-  while (count > 0) {
-  //std::cerr << count << std::endl;  
-  count = Orderbook::findMatch(cmd, otherBook, price, count, id);
+  while (count > 0) { 
+  	count = Orderbook::findMatch(cmd, otherBook, price, count, id);
     if (count == -1) {
 		break;
 	}

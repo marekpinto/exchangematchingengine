@@ -19,7 +19,6 @@ void Orderbook::print_counts() {
 
 void Orderbook::add(int price, int size, int id) {
   book.push_back(std::make_tuple(price, size, id, 1));
-  //this->print_counts();
 }
 
 void Orderbook::remove(int index) {
@@ -68,27 +67,16 @@ switch (cmd) {
         }
       }
       // If we found a seller...
-     // std::cerr << "Best Index: " << bestIndex << std::endl;
       if (bestIndex != -1) {
         get<3>(otherBookRef->getBook()[bestIndex]) += 1;
         // If we want to buy more than we're selling, lower our count and remove the sell order
-	//std::cerr << "Count: " << count << std::endl;
-	//std::cerr << "Compared to: " << get<1>(otherBook.getBook()[bestIndex]) << std::endl;
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
-		//std::cerr << "Correct Conditional" << std::endl;	
-	count -= get<1>(otherBook.getBook()[bestIndex]);
-	otherBook.print_counts();
-	  //std::cerr << "Executing! 1" << std::endl;
+	        count -= get<1>(otherBook.getBook()[bestIndex]);
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
-  //std::cerr <<  "Size: " << otherBook.length() << std::endl;        
-	  otherBookRef->remove(bestIndex);
-//std::cerr <<  "Size: " << otherBook.length() << std::endl;
-
-        // Otherwise, set our count to 0 and lower the count of the sell order
+	        otherBookRef->remove(bestIndex);
+          // Otherwise, set our count to 0 and lower the count of the sell order
         }  else {
           get<1>(otherBook.getBook()[bestIndex]) -= count;
-	  otherBook.print_counts();
-	 // std::cerr << "Executing! 2" << std::endl;
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
           count = 0;
         }
@@ -118,16 +106,12 @@ switch (cmd) {
         if (count >= get<1>(otherBook.getBook()[bestIndex])) {
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), get<1>(otherBook.getBook()[bestIndex]), getCurrentTimestamp());
           count -= get<1>(otherBook.getBook()[bestIndex]);
-          otherBook.print_counts();
-  //std::cerr <<  "Size: " << otherBook.length() << std::endl;
-	  otherBookRef->remove(bestIndex);
-  //std::cerr <<  "Size: " << otherBook.length() << std::endl;
+	        otherBookRef->remove(bestIndex);
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
           get<1>(otherBook.getBook()[bestIndex]) -= count;
-          otherBook.print_counts();
-	  count = 0;
+	        count = 0;
         }
         // Same return logic as buying
         return count;
