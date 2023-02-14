@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <tuple>
+#include <mutex>
 #include "io.hpp"
 
 struct Orderbook {
@@ -10,6 +11,7 @@ struct Orderbook {
 public:
   // Arrays of tuples
   std::vector<std::tuple<int, int, int, int>> book;
+  mutable std::mutex mut;
 
   // Accessors
   int length();

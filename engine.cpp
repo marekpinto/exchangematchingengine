@@ -35,12 +35,6 @@ void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 
 
 
-Orderbook Engine::createBook()
-{
-	Orderbook book;
-	return book;
-}
-
 
 void Engine::connection_thread(ClientConnection connection)
 {
@@ -91,9 +85,11 @@ void Engine::connection_thread(ClientConnection connection)
 				bool result = Engine::handleOrder(ticker, input.type, input.price, input.count, input.order_id);
 				if (!result){
 					if (input.type == input_buy) {
+						//HASHMAP INSERTED
 						orders.emplace(input.order_id, get<0>(instrumentMap.at(ticker)));
 					}
 					else if (input.type == input_sell) {
+						//HASHMAP INSERTED
 						orders.emplace(input.order_id, get<1>(instrumentMap.at(ticker)));
 					}
 				}
@@ -111,6 +107,7 @@ void Engine::connection_thread(ClientConnection connection)
 bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
   // Retrieve otherBook param for findMatch
   if (!instrumentMap.contains(ticker)){
+		//HASHMAP INSERTED
 		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
   }
   Orderbook* otherBook;
