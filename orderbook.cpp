@@ -42,6 +42,10 @@ void Orderbook::incrementExId(int index) {
   get<3>(book[index]) += 1;
 }
 
+void Orderbook::decrementCount(int index, int numSubtracted) {
+  get<1>(book[index]) -= numSubtracted;
+}
+
 /* 
   Input:
    - Command type of buy or sell
@@ -80,7 +84,7 @@ switch (cmd) {
 	        otherBookRef->remove(bestIndex);
           // Otherwise, set our count to 0 and lower the count of the sell order
         }  else {
-          get<1>(otherBook.getBook()[bestIndex]) -= count;
+          otherBookRef->decrementCount(bestIndex, count);
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
           count = 0;
         }
@@ -112,7 +116,7 @@ switch (cmd) {
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
           Output::OrderExecuted(get<2>(otherBook.getBook()[bestIndex]), activeId, get<3>(otherBook.getBook()[bestIndex]), get<0>(otherBook.getBook()[bestIndex]), count, getCurrentTimestamp());
-          get<1>(otherBook.getBook()[bestIndex]) -= count;
+          otherBookRef->decrementCount(bestIndex, count);
 	        count = 0;
         }
       }

@@ -17,6 +17,7 @@ public:
   void print_counts();
   // Mutators
   void incrementExId(int index);
+  void decrementCount(int index, int numSubtracted);
   void add(int price, int size, int id);
   void remove(int index);
   bool removeById(int id);
