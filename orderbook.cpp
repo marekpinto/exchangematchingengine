@@ -81,11 +81,9 @@ switch (cmd) {
           count = 0;
         }
         // Return 0 if our order is sold, or how many we still need to buy
-        return count;
-      // Return -1 if we found no match
-      } else {
-        return -1;
-      }
+      } 
+
+      return count;
       break;
     }
     case input_sell: {

@@ -110,7 +110,6 @@ void Engine::connection_thread(ClientConnection connection)
 
 bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
   // Retrieve otherBook param for findMatch
-  int originalCount = count;
   if (!instrumentMap.contains(ticker)){
 		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
   }
@@ -132,8 +131,9 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 
   // Find a match such that shares are left
   while (count > 0) { 
+	int prevCount = count;
   	count = Orderbook::findMatch(cmd, otherBook, price, count, id);
-    if (count == -1) {
+    if (count == prevCount) {
 		break;
 	}
   }
@@ -141,7 +141,6 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   if (count == 0) {
     return true;
   }
-  count = originalCount;
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
     updateBuyBook(ticker, price, count, id);
