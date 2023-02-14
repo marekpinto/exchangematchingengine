@@ -134,6 +134,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   while (count > 0) { 
   	count = Orderbook::findMatch(cmd, otherBook, price, count, id);
     if (count == -1) {
+		count = originalCount;
 		break;
 	}
   }
@@ -141,7 +142,6 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   if (count == 0) {
     return true;
   }
-  count = originalCount;
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
     updateBuyBook(ticker, price, count, id);
