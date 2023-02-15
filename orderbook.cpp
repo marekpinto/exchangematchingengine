@@ -5,17 +5,13 @@
 #include "io.hpp"
 
 int Orderbook::length() {
+  std::lock_guard<std::mutex> lk(mut);
   return book.size();
 }
 
 std::vector<std::tuple<int, int, int, int>> Orderbook::getBook() {
+  std::lock_guard<std::mutex> lk(mut);
   return book;
-}
-
-void Orderbook::print_counts() {
-	for (int i = 0; i < (int)book.size(); i++) {
-		std::cerr << i << " count: " << get<1>(book[i]) << std::endl;
-	}
 }
 
 void Orderbook::add(int price, int size, int id) {

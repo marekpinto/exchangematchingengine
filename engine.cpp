@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <string>
+#include <mutex>
 
 
 #include "io.hpp"
@@ -13,6 +14,7 @@
 Engine::Engine()
 {  
 	orderBookHash instrumentMap;
+
 }
 
 void Engine::accept(ClientConnection connection)
@@ -23,13 +25,21 @@ void Engine::accept(ClientConnection connection)
 
 void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
 {
-	Orderbook * book = get<0>(instrumentMap.at(ticker));
+	Orderbook* book;
+	{
+		std::lock_guard<std::mutex> lk(instrumentMut);
+		book = get<0>(instrumentMap.at(ticker));
+	}
 	book->add(price, count, id);	
 }
 
 void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 {
-	Orderbook * book = get<1>(instrumentMap.at(ticker));
+	Orderbook * book;
+	{
+		std::lock_guard<std::mutex> lk(instrumentMut);
+		book = get<1>(instrumentMap.at(ticker));
+	}
 	book->add(price, count, id);
 }
 
@@ -86,10 +96,12 @@ void Engine::connection_thread(ClientConnection connection)
 				if (!result){
 					if (input.type == input_buy) {
 						//HASHMAP INSERTED
+						std::lock_guard<std::mutex> lk(instrumentMut);
 						orders.emplace(input.order_id, get<0>(instrumentMap.at(ticker)));
 					}
 					else if (input.type == input_sell) {
 						//HASHMAP INSERTED
+						std::lock_guard<std::mutex> lk(instrumentMut);
 						orders.emplace(input.order_id, get<1>(instrumentMap.at(ticker)));
 					}
 				}
@@ -106,17 +118,22 @@ void Engine::connection_thread(ClientConnection connection)
 
 bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
   // Retrieve otherBook param for findMatch
-  if (!instrumentMap.contains(ticker)){
-		//HASHMAP INSERTED
-		instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
+  {
+	std::lock_guard<std::mutex> lk(instrumentMut);
+	if (!instrumentMap.contains(ticker)){
+			//HASHMAP INSERTED
+			instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
+	}
   }
   Orderbook* otherBook;
   switch (cmd) {
   case input_buy: {
+	std::lock_guard<std::mutex> lk(instrumentMut);
     otherBook = get<1>(instrumentMap.at(ticker));
     break;
   }
   case input_sell: {
+	std::lock_guard<std::mutex> lk(instrumentMut);
     otherBook = get<0>(instrumentMap.at(ticker));
     break;
   }

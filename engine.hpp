@@ -10,6 +10,7 @@
 #include <tuple>
 #include <string>
 #include <unordered_map>
+#include <mutex>
 
 #include "io.hpp"
 #include "orderbook.hpp"
@@ -29,6 +30,7 @@ public:
 	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id);
 	Orderbook createBook();
 	orderBookHash instrumentMap;
+	mutable std::mutex instrumentMut;
 
 private:
 	void connection_thread(ClientConnection conn);
