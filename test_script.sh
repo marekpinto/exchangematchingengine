@@ -8,5 +8,5 @@
 #done
 for file in tests/*
 do
-    ./grader.sh engine < "$file"
+    ./grader engine < "$file"
 done
