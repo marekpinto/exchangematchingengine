@@ -20,7 +20,7 @@ def generate_tests():
             elif op == 2:
                 f.write(str(client) + " S " + str(id) + " " + tickers[random.randint(0,len(tickers)-1)] + " " + str(random.randint(100,2000)) + " " + str(random.randint(10,1000)) + "\n" )
             elif op == 3:
-                f.write(str(client) + " C " + str(random.randint(100, id+1000)) + "\n")
+                f.write(str(client) + " C " + str(random.randint(100, id-1)) + "\n")
         f.write("x\n")
         f.close()
             
