@@ -72,11 +72,11 @@ void Engine::connection_thread(ClientConnection connection)
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
 				auto output_time = getCurrentTimestamp();
-				if (orders.contains(input.order_id)) {
-					bool result = orders.at(input.order_id) -> removeById(input.order_id);
+				if (orders.contains((int)input.order_id)) {
+					bool result = orders.at((int)input.order_id) -> removeById((int)input.order_id);
 					if (result) {
 						Output::OrderDeleted(input.order_id, true, output_time);
-						orders.erase(input.order_id);
+						orders.erase((int)input.order_id);
 						break;
 					}
 				}
@@ -92,7 +92,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
 				// auto output_time = getCurrentTimestamp();
-				bool result = Engine::handleOrder(ticker, input.type, input.price, input.count, input.order_id);
+				bool result = Engine::handleOrder(ticker, input.type, (int)input.price, (int)input.count, (int)input.order_id);
 				if (!result){
 					if (input.type == input_buy) {
 						//HASHMAP INSERTED
@@ -144,7 +144,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   }
 
   // Find a match such that shares are left
-  while (count > 0) { 
+  while (count > 0) {
 	int prevCount = count;
   	count = otherBook->findMatch(cmd, price, count, id);
     if (count == prevCount) {
@@ -158,11 +158,11 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
     updateBuyBook(ticker, price, count, id);
-	Output::OrderAdded(id, ticker.c_str(), price, count, cmd == input_sell, getCurrentTimestamp());
+	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   // Update sell book if command is sell
   } else {
     updateSellBook(ticker, price, count, id);
-	Output::OrderAdded(id, ticker.c_str(), price, count, cmd == input_sell, getCurrentTimestamp());
+	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   }
   return false;
 }

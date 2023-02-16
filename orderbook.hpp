@@ -14,12 +14,12 @@ public:
   mutable std::mutex mut;
 
   // Accessors
-  int length();
+  size_t length();
   std::vector<std::tuple<int, int, int, int>> getBook();
   void print_counts();
   // Mutators
-  void incrementExId(int index);
-  void decrementCount(int index, int numSubtracted);
+  void incrementExId(size_t index);
+  void decrementCount(size_t index, int numSubtracted);
   void add(int price, int size, int id);
   void remove(int index);
   bool removeById(int id);
