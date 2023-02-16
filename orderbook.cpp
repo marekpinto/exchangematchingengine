@@ -25,7 +25,7 @@ void Orderbook::remove(int index) {
 }
 
 bool Orderbook::removeById(int id) {
-  for(size_t i = 0; i<(int)book.size(); i++){
+  for(size_t i = 0; i<book.size(); i++){
     if (get<2>(book[i]) == id) {   
       std::lock_guard<std::mutex> lk(mut);
 	    book.erase(book.begin() + (long)i);

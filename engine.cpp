@@ -151,6 +151,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 		break;
 	}
   }
+  std::cerr << count << std::endl;
   // If count is 0, order is handled
   if (count == 0) {
     return true;
