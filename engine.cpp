@@ -146,7 +146,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Find a match such that shares are left
   while (count > 0) { 
 	int prevCount = count;
-  	count = Orderbook::findMatch(cmd, otherBook, price, count, id);
+  	count = otherBook->findMatch(cmd, price, count, id);
     if (count == prevCount) {
 		break;
 	}

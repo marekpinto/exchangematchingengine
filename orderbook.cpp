@@ -5,7 +5,6 @@
 #include "io.hpp"
 
 int Orderbook::length() {
-  std::lock_guard<std::mutex> lk(mut);
   return book.size();
 }
 
@@ -59,8 +58,7 @@ void Orderbook::decrementCount(int index, int numSubtracted) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-int  Orderbook::findMatch(CommandType cmd, Orderbook* otherBookRef, int price, int count, int activeId) {
-//Orderbook otherBook = (*otherBookRef);  
+int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId) {
 switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
@@ -68,24 +66,28 @@ switch (cmd) {
       // Track the index of the tuple for the seller with lowest price
       int bestIndex = -1;
       // Loop through the sell book vector and find the lowest seller
-      for(int i = otherBookRef->length()-1; i>=0; i--) {
-        if (get<0>(otherBookRef->getBook()[i]) <= sellPrice) {
-          sellPrice = get<0>(otherBookRef->getBook()[i]);
-          bestIndex = i;
+      {
+        std::lock_guard<std::mutex> lk(mut);
+        for(int i = length()-1; i>=0; i--) {
+          if (get<0>(book[i]) <= sellPrice) {
+            sellPrice = get<0>(book[i]);
+            bestIndex = i;
+          }
         }
       }
       // If we found a seller...
       if (bestIndex != -1) {
-        otherBookRef->incrementExId(bestIndex);
+        incrementExId(bestIndex);
+        std::lock_guard<std::mutex> lk(mut);
         // If we want to buy more than we're selling, lower our count and remove the sell order
-        if (count >= get<1>(otherBookRef->getBook()[bestIndex])) {
-	        count -= get<1>(otherBookRef->getBook()[bestIndex]);
-          Output::OrderExecuted(get<2>(otherBookRef->getBook()[bestIndex]), activeId, get<3>(otherBookRef->getBook()[bestIndex]), get<0>(otherBookRef->getBook()[bestIndex]), get<1>(otherBookRef->getBook()[bestIndex]), getCurrentTimestamp());
-	        otherBookRef->remove(bestIndex);
+        if (count >= get<1>(book[bestIndex])) {
+	        count -= get<1>(book[bestIndex]);
+          Output::OrderExecuted(get<2>(book[bestIndex]), activeId, get<3>(book[bestIndex]), get<0>(book[bestIndex]), get<1>(book[bestIndex]), getCurrentTimestamp());
+	        remove(bestIndex);
           // Otherwise, set our count to 0 and lower the count of the sell order
         }  else {
-          otherBookRef->decrementCount(bestIndex, count);
-          Output::OrderExecuted(get<2>(otherBookRef->getBook()[bestIndex]), activeId, get<3>(otherBookRef->getBook()[bestIndex]), get<0>(otherBookRef->getBook()[bestIndex]), count, getCurrentTimestamp());
+          decrementCount(bestIndex, count);
+          Output::OrderExecuted(get<2>(book[bestIndex]), activeId, get<3>(book[bestIndex]), get<0>(book[bestIndex]), count, getCurrentTimestamp());
           count = 0;
         }
         // Return 0 if our order is sold, or how many we still need to buy
@@ -99,24 +101,28 @@ switch (cmd) {
       int buyPrice = price;
       int bestIndex = -1;
       // Loop through the vector to find the highest seller
-      for(int i = otherBookRef->length()-1; i>=0; i--) {
-        if (get<0>(otherBookRef->getBook()[i]) >= buyPrice) {
-          buyPrice = get<0>(otherBookRef->getBook()[i]);
-          bestIndex = i;
+      {
+        std::lock_guard<std::mutex> lk(mut);
+        for(int i = length()-1; i>=0; i--) {
+          if (get<0>(book[i]) >= buyPrice) {
+            buyPrice = get<0>(book[i]);
+            bestIndex = i;
+          }
         }
       }
       // If we found a buyer...
       if (bestIndex != -1) {
-        otherBookRef->incrementExId(bestIndex);
+        incrementExId(bestIndex);
+        std::lock_guard<std::mutex> lk(mut);
         // If we are selling more than they are buying, remove the buyer and lower our sell count
-        if (count >= get<1>(otherBookRef->getBook()[bestIndex])) {
-          Output::OrderExecuted(get<2>(otherBookRef->getBook()[bestIndex]), activeId, get<3>(otherBookRef->getBook()[bestIndex]), get<0>(otherBookRef->getBook()[bestIndex]), get<1>(otherBookRef->getBook()[bestIndex]), getCurrentTimestamp());
-          count -= get<1>(otherBookRef->getBook()[bestIndex]);
-	        otherBookRef->remove(bestIndex);
+        if (count >= get<1>(book[bestIndex])) {
+          Output::OrderExecuted(get<2>(book[bestIndex]), activeId, get<3>(book[bestIndex]), get<0>(book[bestIndex]), get<1>(book[bestIndex]), getCurrentTimestamp());
+          count -= get<1>(book[bestIndex]);
+	        remove(bestIndex);
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
-          Output::OrderExecuted(get<2>(otherBookRef->getBook()[bestIndex]), activeId, get<3>(otherBookRef->getBook()[bestIndex]), get<0>(otherBookRef->getBook()[bestIndex]), count, getCurrentTimestamp());
-          otherBookRef->decrementCount(bestIndex, count);
+          Output::OrderExecuted(get<2>(book[bestIndex]), activeId, get<3>(book[bestIndex]), get<0>(book[bestIndex]), count, getCurrentTimestamp());
+          decrementCount(bestIndex, count);
 	        count = 0;
         }
       }

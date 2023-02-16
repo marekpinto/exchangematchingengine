@@ -23,7 +23,7 @@ public:
   void add(int price, int size, int id);
   void remove(int index);
   bool removeById(int id);
-  int static findMatch(CommandType cmd, Orderbook* otherBookRef, int price, int count, int activeId);
+  int  findMatch(CommandType cmd, int price, int count, int activeId);
 };
 
 #endif
