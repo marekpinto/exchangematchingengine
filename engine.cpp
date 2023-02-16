@@ -2,7 +2,8 @@
 #include <thread>
 #include <string>
 #include <mutex>
-
+#include <tuple>
+#include <unordered_map>
 
 #include "io.hpp"
 #include "engine.hpp"
@@ -28,7 +29,7 @@ void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
 	Orderbook* book;
 	{
 		std::lock_guard<std::mutex> lk(instrumentMut);
-		book = get<0>(instrumentMap.at(ticker));
+		book = std::get<0>(instrumentMap.at(ticker));
 	}
 	book->add(price, count, id);	
 }
@@ -38,7 +39,7 @@ void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 	Orderbook * book;
 	{
 		std::lock_guard<std::mutex> lk(instrumentMut);
-		book = get<1>(instrumentMap.at(ticker));
+		book = std::get<1>(instrumentMap.at(ticker));
 	}
 	book->add(price, count, id);
 }
@@ -93,16 +94,17 @@ void Engine::connection_thread(ClientConnection connection)
 				// an appropriate timestamp!
 				// auto output_time = getCurrentTimestamp();
 				bool result = Engine::handleOrder(ticker, input.type, (int)input.price, (int)input.count, (int)input.order_id);
+				
 				if (!result){
 					if (input.type == input_buy) {
 						//HASHMAP INSERTED
 						std::lock_guard<std::mutex> lk(instrumentMut);
-						orders.emplace(input.order_id, get<0>(instrumentMap.at(ticker)));
+						orders.emplace(input.order_id, std::get<0>(instrumentMap.at(ticker)));
 					}
 					else if (input.type == input_sell) {
 						//HASHMAP INSERTED
 						std::lock_guard<std::mutex> lk(instrumentMut);
-						orders.emplace(input.order_id, get<1>(instrumentMap.at(ticker)));
+						orders.emplace(input.order_id, std::get<1>(instrumentMap.at(ticker)));
 					}
 				}
 				break;
@@ -118,23 +120,30 @@ void Engine::connection_thread(ClientConnection connection)
 
 bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
   // Retrieve otherBook param for findMatch
+  //std::cout << "Reached handleOrder" << std::endl;
   {
 	std::lock_guard<std::mutex> lk(instrumentMut);
+	 // std::cout << "Made Lock Guard" << std::endl;
+
 	if (!instrumentMap.contains(ticker)){
 			//HASHMAP INSERTED
 			instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
+			//std::cout << "Added to instrumentmap" << std::endl;
+
 	}
   }
   Orderbook* otherBook;
   switch (cmd) {
   case input_buy: {
 	std::lock_guard<std::mutex> lk(instrumentMut);
-    otherBook = get<1>(instrumentMap.at(ticker));
+	//std::cout << "2nd mutex" << std::endl;
+    otherBook = std::get<1>(instrumentMap.at(ticker));
+	//std::cout << "got other book" << std::endl;
     break;
   }
   case input_sell: {
 	std::lock_guard<std::mutex> lk(instrumentMut);
-    otherBook = get<0>(instrumentMap.at(ticker));
+    otherBook = std::get<0>(instrumentMap.at(ticker));
     break;
   }
   default: {
@@ -146,7 +155,9 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Find a match such that shares are left
   while (count > 0) {
 	int prevCount = count;
+	//std::cout << "Rigth before findMatch" << std::endl;
   	count = otherBook->findMatch(cmd, price, count, id);
+	//std::cout << "Called findmatch" << std::endl;
     if (count == prevCount) {
 		break;
 	}

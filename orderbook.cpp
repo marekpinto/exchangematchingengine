@@ -19,14 +19,14 @@ void Orderbook::add(int price, int size, int id) {
 }
 
 void Orderbook::remove(int index) {
-  std::lock_guard<std::mutex> lk(mut);
+  //std::lock_guard<std::mutex> lk(mut);
   book.erase(book.begin() + index);
 
 }
 
 bool Orderbook::removeById(int id) {
   for(size_t i = 0; i<book.size(); i++){
-    if (get<2>(book[i]) == id) {   
+    if (std::get<2>(book[i]) == id) {   
       std::lock_guard<std::mutex> lk(mut);
 	    book.erase(book.begin() + (long)i);
       return true;
@@ -37,12 +37,12 @@ bool Orderbook::removeById(int id) {
 
 void Orderbook::incrementExId(size_t index) {
   std::lock_guard<std::mutex> lk(mut);
-  get<3>(book[index]) += 1;
+  std::get<3>(book[index]) += 1;
 }
 
 void Orderbook::decrementCount(size_t index, int numSubtracted) {
-  std::lock_guard<std::mutex> lk(mut);
-  get<1>(book[index]) -= numSubtracted;
+  //std::lock_guard<std::mutex> lk(mut);
+  std::get<1>(book[index]) -= numSubtracted;
 }
 
 /* 
@@ -59,6 +59,8 @@ void Orderbook::decrementCount(size_t index, int numSubtracted) {
   The function will remove a resting buy or sell order if fulfilled along the way
 */
 int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId) {
+          //std::cerr << "Made it to findMatch" << std::endl;
+
 switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
@@ -68,26 +70,30 @@ switch (cmd) {
       // Loop through the sell book vector and find the lowest seller
       {
         std::lock_guard<std::mutex> lk(mut);
-        for(size_t i = length()-1; i>=0; i--) {
-          if (get<0>(book[i]) <= sellPrice) {
-            sellPrice = get<0>(book[i]);
-            bestIndex = (int)i;
+       // std::cerr << "First Mutex" << std::endl;
+        for(int i = (int)book.size()-1; i>=0; i--) {
+          std::cerr << i << std::endl;
+          if (std::get<0>(book[(size_t)i]) <= sellPrice) {
+            sellPrice = std::get<0>(book[(size_t)i]);
+            bestIndex = i;
           }
         }
+          //std::cerr << "Made through for loop" << std::endl;
       }
       // If we found a seller...
       if (bestIndex != -1) {
         incrementExId((size_t)bestIndex);
         std::lock_guard<std::mutex> lk(mut);
+        //std::cerr << "Second Mutex" << std::endl;
         // If we want to buy more than we're selling, lower our count and remove the sell order
-        if (count >= get<1>(book[(size_t)bestIndex])) {
-	        count -= get<1>(book[(size_t)bestIndex]);
-          Output::OrderExecuted((uint32_t)get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)get<3>(book[(size_t)bestIndex]), (uint32_t)get<0>(book[(size_t)bestIndex]), (uint32_t)get<1>(book[(size_t)bestIndex]), getCurrentTimestamp());
+        if (count >= std::get<1>(book[(size_t)bestIndex])) {
+	        count -= std::get<1>(book[(size_t)bestIndex]);
+          Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)std::get<1>(book[(size_t)bestIndex]), getCurrentTimestamp());
 	        remove(bestIndex);
           // Otherwise, set our count to 0 and lower the count of the sell order
         }  else {
           decrementCount((size_t)bestIndex, count);
-          Output::OrderExecuted((uint32_t)get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)get<3>(book[(size_t)bestIndex]), (uint32_t)get<0>(book[(size_t)bestIndex]), (uint32_t)count, getCurrentTimestamp());
+          Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)count, getCurrentTimestamp());
           count = 0;
         }
         // Return 0 if our order is sold, or how many we still need to buy
@@ -103,9 +109,9 @@ switch (cmd) {
       // Loop through the vector to find the highest seller
       {
         std::lock_guard<std::mutex> lk(mut);
-        for(size_t i = length()-1; i>=0; i--) {
-          if (get<0>(book[i]) >= buyPrice) {
-            buyPrice = get<0>(book[i]);
+        for(int i = (int)book.size()-1; i>=0; i--) {
+          if (std::get<0>(book[(size_t)i]) >= buyPrice) {
+            buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
           }
         }
@@ -115,13 +121,13 @@ switch (cmd) {
         incrementExId((size_t)bestIndex);
         std::lock_guard<std::mutex> lk(mut);
         // If we are selling more than they are buying, remove the buyer and lower our sell count
-        if (count >= get<1>(book[(size_t)bestIndex])) {
-          Output::OrderExecuted((uint32_t)get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)get<3>(book[(size_t)bestIndex]), (uint32_t)get<0>(book[(size_t)bestIndex]), (uint32_t)get<1>(book[(size_t)bestIndex]), getCurrentTimestamp());
-          count -= get<1>(book[(size_t)bestIndex]);
+        if (count >= std::get<1>(book[(size_t)bestIndex])) {
+          Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)std::get<1>(book[(size_t)bestIndex]), getCurrentTimestamp());
+          count -= std::get<1>(book[(size_t)bestIndex]);
 	        remove(bestIndex);
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
-          Output::OrderExecuted((uint32_t)get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)get<3>(book[(size_t)bestIndex]), (uint32_t)get<0>(book[(size_t)bestIndex]), (uint32_t)count, getCurrentTimestamp());
+          Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)count, getCurrentTimestamp());
           decrementCount((size_t)bestIndex, count);
 	        count = 0;
         }
