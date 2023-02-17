@@ -19,7 +19,6 @@ void Orderbook::add(int price, int size, int id, long long timestamp) {
 }
 
 void Orderbook::remove(int index) {
-  //std::lock_guard<std::mutex> lk(mut);
   book.erase(book.begin() + index);
 
 }
@@ -41,7 +40,6 @@ void Orderbook::incrementExId(size_t index) {
 }
 
 void Orderbook::decrementCount(size_t index, int numSubtracted) {
-  std::lock_guard<std::mutex> lk(mut);
   std::get<1>(book[index]) -= numSubtracted;
 }
 
@@ -68,7 +66,6 @@ switch (cmd) {
       // Loop through the sell book vector and find the lowest seller
       {
         std::lock_guard<std::mutex> lk(mut);
-       // std::cerr << "First Mutex" << std::endl;
         for(int i = (int)book.size()-1; i>=0; i--) {
           std::cerr << i << std::endl;
           if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp) {
@@ -136,4 +133,3 @@ switch (cmd) {
     default: {return -2;}
   }
 }
-

@@ -121,7 +121,6 @@ void Engine::connection_thread(ClientConnection connection)
 
 bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id, long long timestamp) {
   // Retrieve otherBook param for findMatch
-  //std::cout << "Reached handleOrder" << std::endl;
   {
 	std::lock_guard<std::mutex> lk(instrumentMut);
 	if (!instrumentMap.contains(ticker)){
