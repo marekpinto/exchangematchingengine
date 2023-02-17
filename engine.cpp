@@ -183,13 +183,15 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
     // updateBuyBook(ticker, price, count, id);
-	std::get<0>(instrumentMap.at(ticker))->decrementCountById(id, count);
-	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
+	  std::lock_guard<std::mutex> lk(instrumentMut);
+	  std::get<0>(instrumentMap.at(ticker))->decrementCountById(id, count);
+	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, timestamp);
   // Update sell book if command is sell
   } else {
     // updateSellBook(ticker, price, count, id);
+        std::lock_guard<std::mutex> lk(instrumentMut);
 	std::get<1>(instrumentMap.at(ticker))->decrementCountById(id, count);
-	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
+	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, timestamp);
   }
   return false;
 }
