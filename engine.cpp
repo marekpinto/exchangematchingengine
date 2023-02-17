@@ -123,27 +123,28 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   //std::cout << "Reached handleOrder" << std::endl;
   {
 	std::lock_guard<std::mutex> lk(instrumentMut);
-	 // std::cout << "Made Lock Guard" << std::endl;
-
 	if (!instrumentMap.contains(ticker)){
 			//HASHMAP INSERTED
 			instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
-			//std::cout << "Added to instrumentmap" << std::endl;
-
 	}
   }
   Orderbook* otherBook;
+  // Active orders are
   switch (cmd) {
   case input_buy: {
-	std::lock_guard<std::mutex> lk(instrumentMut);
-	//std::cout << "2nd mutex" << std::endl;
-    otherBook = std::get<1>(instrumentMap.at(ticker));
-	//std::cout << "got other book" << std::endl;
+	{
+		std::lock_guard<std::mutex> lk(instrumentMut);
+    	otherBook = std::get<1>(instrumentMap.at(ticker));
+	}
+	updateBuyBook(ticker, price, count, id);
     break;
   }
   case input_sell: {
-	std::lock_guard<std::mutex> lk(instrumentMut);
-    otherBook = std::get<0>(instrumentMap.at(ticker));
+	{
+		std::lock_guard<std::mutex> lk(instrumentMut);
+    	otherBook = std::get<0>(instrumentMap.at(ticker));
+	}
+	updateSellBook(ticker, price, count, id);
     break;
   }
   default: {
@@ -155,25 +156,35 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Find a match such that shares are left
   while (count > 0) {
 	int prevCount = count;
-	//std::cout << "Rigth before findMatch" << std::endl;
   	count = otherBook->findMatch(cmd, price, count, id);
-	//std::cout << "Called findmatch" << std::endl;
     if (count == prevCount) {
 		break;
 	}
   }
-  std::cerr << count << std::endl;
   // If count is 0, order is handled
   if (count == 0) {
+	// Switch to remove active order if handled
+	switch (cmd) {
+	case input_buy: {
+		std::lock_guard<std::mutex> lk(instrumentMut);
+		std::get<0>(instrumentMap.at(ticker))->removeById(id);
+	}
+	case input_sell: {
+		std::lock_guard<std::mutex> lk(instrumentMut);
+		std::get<1>(instrumentMap.at(ticker))->removeById(id);
+	}
+	default: {}
+	}
+	// Return that active order was handled
     return true;
   }
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
-    updateBuyBook(ticker, price, count, id);
+    // updateBuyBook(ticker, price, count, id);
 	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   // Update sell book if command is sell
   } else {
-    updateSellBook(ticker, price, count, id);
+    // updateSellBook(ticker, price, count, id);
 	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   }
   return false;
