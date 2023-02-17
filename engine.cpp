@@ -4,6 +4,8 @@
 #include <mutex>
 #include <tuple>
 #include <unordered_map>
+#include <condition_variable>
+#include <atomic>
 
 #include "io.hpp"
 #include "engine.hpp"
@@ -15,6 +17,9 @@
 Engine::Engine()
 {  
 	orderBookHash instrumentMap;
+	counter.store(0);
+	numThreads = 0;
+	isFirstOrder = true;
 
 }
 
@@ -49,6 +54,7 @@ void Engine::updateSellBook(std::string ticker, int price, int count, int id, lo
 
 void Engine::connection_thread(ClientConnection connection)
 {
+	numThreads++;
 	std::unordered_map<int, Orderbook *> orders;
 	while(true)
 	{
@@ -154,6 +160,21 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 	break;
   }
   // End switch
+  }
+  if(isFirstOrder) {
+ std::cerr << "Pre inc: " << counter << std::endl;
+  counter++;
+  std::cerr << "Count val: " << counter << std::endl;
+  std::cerr << "Num of threads: " << numThreads << std::endl;
+  if(counter == numThreads) {
+	  cv.notify_all();
+  } else {
+	  std::unique_lock<std::mutex> lk(cvMut);
+	  while (counter != numThreads) {
+		  cv.wait(lk);
+	  }
+  }
+  isFirstOrder = false;
   }
 
   // Find a match such that shares are left

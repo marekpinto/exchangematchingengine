@@ -11,6 +11,8 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 #include "io.hpp"
 #include "orderbook.hpp"
@@ -31,6 +33,11 @@ public:
 	Orderbook createBook();
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
+	int numThreads;
+	std::atomic<int> counter;
+	mutable std::mutex cvMut;
+	std::condition_variable cv;
+	bool isFirstOrder;
 
 private:
 	void connection_thread(ClientConnection conn);
