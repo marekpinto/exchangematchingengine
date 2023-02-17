@@ -24,9 +24,9 @@ void Orderbook::remove(int index) {
 }
 
 bool Orderbook::removeById(int id) {
+      std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
-      std::lock_guard<std::mutex> lk(mut);
 	    book.erase(book.begin() + (long)i);
       return true;
     }
@@ -35,7 +35,6 @@ bool Orderbook::removeById(int id) {
 }
 
 void Orderbook::incrementExId(size_t index) {
-  std::lock_guard<std::mutex> lk(mut);
   std::get<3>(book[index]) += 1;
 }
 
@@ -66,28 +65,28 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
   The function will remove a resting buy or sell order if fulfilled along the way
 */
 int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp) {
+	
 switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
       int sellPrice = price;
       // Track the index of the tuple for the seller with lowest price
-      int bestIndex = -1;
       // Loop through the sell book vector and find the lowest seller
-      {
+      
         std::lock_guard<std::mutex> lk(mut);
+      int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
           std::cerr << i << std::endl;
-          if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp) {
+          if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) >0 ) {
             sellPrice = std::get<0>(book[(size_t)i]);
             bestIndex = i;
           }
         }
-      }
+     
       // If we found a seller...
       if (bestIndex != -1) {
-        std::lock_guard<std::mutex> lk1(otherBook->mut);
+       //`std::lock_guard<std::mutex> lk1(otherBook->mut);
         incrementExId((size_t)bestIndex);
-        std::lock_guard<std::mutex> lk(mut);
         // If we want to buy more than we're selling, lower our count and remove the sell order
         if (count >= std::get<1>(book[(size_t)bestIndex])) {
 	        count -= std::get<1>(book[(size_t)bestIndex]);
@@ -108,22 +107,21 @@ switch (cmd) {
     case input_sell: {
       // Set buy price equal to sell price
       int buyPrice = price;
-      int bestIndex = -1;
       // Loop through the vector to find the highest seller
-      {
+      
         std::lock_guard<std::mutex> lk(mut);
+      int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
-          if (std::get<0>(book[(size_t)i]) >= buyPrice && std::get<4>(book[(size_t)i]) <= timestamp) {
+          if (std::get<0>(book[(size_t)i]) >= buyPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) > 0) {
             buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
           }
         }
-      }
+      
       // If we found a buyer...
       if (bestIndex != -1) {
-        std::lock_guard<std::mutex> lk1(otherBook->mut);
+       // std::lock_guard<std::mutex> lk1(otherBook->mut);
         incrementExId((size_t)bestIndex);
-        std::lock_guard<std::mutex> lk(mut);
         // If we are selling more than they are buying, remove the buyer and lower our sell count
 	if (count >= std::get<1>(book[(size_t)bestIndex])) {
 	std::cerr << "hit if" << std::endl;
