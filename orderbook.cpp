@@ -68,7 +68,6 @@ switch (cmd) {
       // Loop through the sell book vector and find the lowest seller
       {
         std::lock_guard<std::mutex> lk(mut);
-       // std::cerr << "First Mutex" << std::endl;
         for(int i = (int)book.size()-1; i>=0; i--) {
           std::cerr << i << std::endl;
           if (std::get<0>(book[(size_t)i]) <= sellPrice) {
