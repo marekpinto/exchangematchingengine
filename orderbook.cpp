@@ -66,6 +66,7 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
   The function will remove a resting buy or sell order if fulfilled along the way
 */
 int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp) {
+	std::cerr << timestamp << std::endl;
 switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
@@ -77,7 +78,7 @@ switch (cmd) {
         std::lock_guard<std::mutex> lk(mut);
         for(int i = (int)book.size()-1; i>=0; i--) {
           std::cerr << i << std::endl;
-          if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp) {
+          if (std::get<0>(book[(size_t)i]) <= sellPrice/* && std::get<4>(book[(size_t)i]) <= timestamp*/) {
             sellPrice = std::get<0>(book[(size_t)i]);
             bestIndex = i;
           }
@@ -113,7 +114,7 @@ switch (cmd) {
       {
         std::lock_guard<std::mutex> lk(mut);
         for(int i = (int)book.size()-1; i>=0; i--) {
-          if (std::get<0>(book[(size_t)i]) >= buyPrice && std::get<4>(book[(size_t)i]) <= timestamp) {
+          if (std::get<0>(book[(size_t)i]) >= buyPrice /*&& std::get<4>(book[(size_t)i]) <= timestamp*/) {
             buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
           }
