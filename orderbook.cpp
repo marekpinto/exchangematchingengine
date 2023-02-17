@@ -47,7 +47,7 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
   std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
-	    std::get<1>(book[i]) -= numSubtracted;
+	    std::get<1>(book[i]) = numSubtracted;
     }
   }
 }
@@ -95,9 +95,9 @@ switch (cmd) {
           Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)std::get<1>(book[(size_t)bestIndex]), getCurrentTimestamp());
 	        remove(bestIndex);
           // Otherwise, set our count to 0 and lower the count of the sell order
-        }  else {
-          decrementCount((size_t)bestIndex, count);
+        }  else {;
           Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)count, getCurrentTimestamp());
+	  decrementCount((size_t)bestIndex, count);
           count = 0;
         }
         // Return 0 if our order is sold, or how many we still need to buy
@@ -126,12 +126,14 @@ switch (cmd) {
         incrementExId((size_t)bestIndex);
         std::lock_guard<std::mutex> lk(mut);
         // If we are selling more than they are buying, remove the buyer and lower our sell count
-        if (count >= std::get<1>(book[(size_t)bestIndex])) {
+	if (count >= std::get<1>(book[(size_t)bestIndex])) {
+	std::cerr << "hit if" << std::endl;
           Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)std::get<1>(book[(size_t)bestIndex]), getCurrentTimestamp());
           count -= std::get<1>(book[(size_t)bestIndex]);
 	        remove(bestIndex);
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
+	std::cerr << "hit else" << std::endl;
           Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)count, getCurrentTimestamp());
           decrementCount((size_t)bestIndex, count);
 	        count = 0;
