@@ -1,6 +1,6 @@
 import random
 print("test")
-tickers = ["A", "AA", "AAC", "AAIC", "AAIC^B", "AAIC^C", "AAIN", "AAM^A", "AAM^B", "AAN"]
+tickers = ["A", "AA", "AAC", "AAIC", "AAID", "AAIE", "AAIN", "AAM", "AAN", "AAO"]
 for i in range(100): 
     file_name="tests/medium_"+str(i)+".in"
     f=open(file_name, 'w').close()
@@ -9,9 +9,9 @@ for i in range(100):
     f.write("o\n")
     #print(file_name)
     id = 100
+    map = [[], [], [], []]
     for i in range(random.randint(20,200)):
         id += 1
-        map = [[], [], [], []]
         op = random.randint(1,3)
         client = random.randint(0, 3)
         if op == 1:
