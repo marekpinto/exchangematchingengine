@@ -15,7 +15,6 @@
 Engine::Engine()
 {  
 	orderBookHash instrumentMap;
-
 }
 
 void Engine::accept(ClientConnection connection)
