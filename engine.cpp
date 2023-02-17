@@ -24,24 +24,24 @@ void Engine::accept(ClientConnection connection)
 	thread.detach();
 }
 
-void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
+void Engine::updateBuyBook(std::string ticker, int price, int count, int id, long long timestamp)
 {
 	Orderbook* book;
 	{
 		std::lock_guard<std::mutex> lk(instrumentMut);
 		book = std::get<0>(instrumentMap.at(ticker));
 	}
-	book->add(price, count, id);	
+	book->add(price, count, id, timestamp);	
 }
 
-void Engine::updateSellBook(std::string ticker, int price, int count, int id)
+void Engine::updateSellBook(std::string ticker, int price, int count, int id, long long timestamp)
 {
 	Orderbook * book;
 	{
 		std::lock_guard<std::mutex> lk(instrumentMut);
 		book = std::get<1>(instrumentMap.at(ticker));
 	}
-	book->add(price, count, id);
+	book->add(price, count, id, timestamp);
 }
 
 
@@ -61,6 +61,7 @@ void Engine::connection_thread(ClientConnection connection)
 		}
 
 		std::string ticker(input.instrument);
+		long long time = getCurrentTimestamp();
 
 		// Functions for printing output actions in the prescribed format are
 		// provided in the Output class:
@@ -93,7 +94,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
 				// auto output_time = getCurrentTimestamp();
-				bool result = Engine::handleOrder(ticker, input.type, (int)input.price, (int)input.count, (int)input.order_id);
+				bool result = Engine::handleOrder(ticker, input.type, (int)input.price, (int)input.count, (int)input.order_id, time);
 				
 				if (!result){
 					if (input.type == input_buy) {
@@ -118,7 +119,7 @@ void Engine::connection_thread(ClientConnection connection)
 	}
 }
 
-bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
+bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id, long long timestamp) {
   // Retrieve otherBook param for findMatch
   //std::cout << "Reached handleOrder" << std::endl;
   {
@@ -138,7 +139,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
     	otherBook = std::get<1>(instrumentMap.at(ticker));
 		thisBook = std::get<0>(instrumentMap.at(ticker));
 	}
-	updateBuyBook(ticker, price, count, id);
+	updateBuyBook(ticker, price, count, id, timestamp);
     break;
   }
   case input_sell: {
@@ -147,7 +148,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
     	otherBook = std::get<0>(instrumentMap.at(ticker));
 		thisBook = std::get<1>(instrumentMap.at(ticker));
 	}
-	updateSellBook(ticker, price, count, id);
+	updateSellBook(ticker, price, count, id, timestamp);
     break;
   }
   default: {
@@ -159,7 +160,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Find a match such that shares are left
   while (count > 0) {
 	int prevCount = count;
-  	count = otherBook->findMatch(cmd, price, count, id, thisBook);
+  	count = otherBook->findMatch(cmd, price, count, id, thisBook, timestamp);
     if (count == prevCount) {
 		break;
 	}

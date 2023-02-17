@@ -25,9 +25,9 @@ struct Engine
 public:
 	Engine();
 	void accept(ClientConnection conn);
-	void updateBuyBook(std::string ticker, int price, int count, int id);
-	void updateSellBook(std::string ticker, int price, int count, int id);
-	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id);
+	void updateBuyBook(std::string ticker, int price, int count, int id, long long timestamp);
+	void updateSellBook(std::string ticker, int price, int count, int id, long long timestamp);
+	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id, long long timestamp);
 	Orderbook createBook();
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
