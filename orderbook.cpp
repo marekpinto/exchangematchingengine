@@ -58,7 +58,7 @@ void Orderbook::decrementCount(size_t index, int numSubtracted) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId) {
+int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, Orderbook * otherBook) {
 switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
@@ -79,6 +79,7 @@ switch (cmd) {
       }
       // If we found a seller...
       if (bestIndex != -1) {
+        std::lock_guard<std::mutex> lk1(otherBook->mut);
         incrementExId((size_t)bestIndex);
         std::lock_guard<std::mutex> lk(mut);
         // If we want to buy more than we're selling, lower our count and remove the sell order
@@ -114,6 +115,7 @@ switch (cmd) {
       }
       // If we found a buyer...
       if (bestIndex != -1) {
+        std::lock_guard<std::mutex> lk1(otherBook->mut);
         incrementExId((size_t)bestIndex);
         std::lock_guard<std::mutex> lk(mut);
         // If we are selling more than they are buying, remove the buyer and lower our sell count
