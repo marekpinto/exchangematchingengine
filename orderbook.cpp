@@ -43,6 +43,15 @@ void Orderbook::decrementCount(size_t index, int numSubtracted) {
   std::get<1>(book[index]) -= numSubtracted;
 }
 
+void Orderbook::decrementCountById(int id, int numSubtracted) {
+  std::lock_guard<std::mutex> lk(mut);
+  for(size_t i = 0; i<book.size(); i++){
+    if (std::get<2>(book[i]) == id) {   
+	    std::get<1>(book[i]) -= numSubtracted;
+    }
+  }
+}
+
 /* 
   Input:
    - Command type of buy or sell

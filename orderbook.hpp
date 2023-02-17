@@ -23,6 +23,7 @@ public:
   void add(int price, int size, int id, long long timestamp);
   void remove(int index);
   bool removeById(int id);
+  void decrementCountById(int id, int numSubtracted);
   int  findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp);
 };
 

@@ -184,10 +184,12 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
     // updateBuyBook(ticker, price, count, id);
+	std::get<0>(instrumentMap.at(ticker))->decrementCountById(id, count);
 	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   // Update sell book if command is sell
   } else {
     // updateSellBook(ticker, price, count, id);
+	std::get<0>(instrumentMap.at(ticker))->removeById(id);
 	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   }
   return false;
