@@ -19,15 +19,15 @@ void Orderbook::add(int price, int size, int id) {
 }
 
 void Orderbook::remove(int index) {
-  //std::lock_guard<std::mutex> lk(mut);
+  std::lock_guard<std::mutex> lk(mut);
   book.erase(book.begin() + index);
 
 }
 
 bool Orderbook::removeById(int id) {
+  std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
-      std::lock_guard<std::mutex> lk(mut);
 	    book.erase(book.begin() + (long)i);
       return true;
     }
