@@ -26,20 +26,26 @@ void Engine::accept(ClientConnection connection)
 void Engine::updateBuyBook(std::string ticker, int price, int count, int id, long long timestamp)
 {
 	Orderbook* book;
+	Orderbook* otherBook; //
 	{
 		std::lock_guard<std::mutex> lk(instrumentMut);
 		book = std::get<0>(instrumentMap.at(ticker));
+		otherBook = std::get<1>(instrumentMap.at(ticker)); //
 	}
+	std::lock_guard<std::mutex> lk(otherBook->mut); // 
 	book->add(price, count, id, timestamp);	
 }
 
 void Engine::updateSellBook(std::string ticker, int price, int count, int id, long long timestamp)
 {
 	Orderbook * book;
+	Orderbook* otherBook; //
 	{
 		std::lock_guard<std::mutex> lk(instrumentMut);
 		book = std::get<1>(instrumentMap.at(ticker));
+		otherBook = std::get<0>(instrumentMap.at(ticker)); //
 	}
+	std::lock_guard<std::mutex> lk(otherBook->mut); //
 	book->add(price, count, id, timestamp);
 }
 
