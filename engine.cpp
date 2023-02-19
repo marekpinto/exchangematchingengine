@@ -27,26 +27,27 @@ void Engine::updateBuyBook(std::string ticker, int price, int count, int id, lon
 {
 	Orderbook* book;
 	Orderbook* otherBook; //
+	book = std::get<0>(instrumentMap.at(ticker));
+	otherBook = std::get<1>(instrumentMap.at(ticker)); //
 	{
-		std::lock_guard<std::mutex> lk(instrumentMut);
-		book = std::get<0>(instrumentMap.at(ticker));
-		otherBook = std::get<1>(instrumentMap.at(ticker)); //
+		std::lock_guard<std::mutex> lk(otherBook->mut); // 
+		book->add(price, count, id, timestamp);	
 	}
-	std::lock_guard<std::mutex> lk(otherBook->mut); // 
-	book->add(price, count, id, timestamp);	
+	cond.notify_one();
+
 }
 
 void Engine::updateSellBook(std::string ticker, int price, int count, int id, long long timestamp)
 {
 	Orderbook * book;
 	Orderbook* otherBook; //
+	book = std::get<1>(instrumentMap.at(ticker));
+	otherBook = std::get<0>(instrumentMap.at(ticker)); //
 	{
-		std::lock_guard<std::mutex> lk(instrumentMut);
-		book = std::get<1>(instrumentMap.at(ticker));
-		otherBook = std::get<0>(instrumentMap.at(ticker)); //
+		std::lock_guard<std::mutex> lk(otherBook->mut); //
+		book->add(price, count, id, timestamp);
 	}
-	std::lock_guard<std::mutex> lk(otherBook->mut); //
-	book->add(price, count, id, timestamp);
+	cond.notify_one();
 }
 
 
@@ -143,7 +144,11 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
     	otherBook = std::get<1>(instrumentMap.at(ticker));
 		thisBook = std::get<0>(instrumentMap.at(ticker));
 	}
+	std::unique_lock<std::mutex> lk(instrumentMut);
 	updateBuyBook(ticker, price, count, id, timestamp);
+	while(!thisBook->contains(id)){
+		cond.wait(lk);
+	}
     break;
   }
   case input_sell: {
@@ -152,7 +157,11 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
     	otherBook = std::get<0>(instrumentMap.at(ticker));
 		thisBook = std::get<1>(instrumentMap.at(ticker));
 	}
+	std::unique_lock<std::mutex> lk(instrumentMut);
 	updateSellBook(ticker, price, count, id, timestamp);
+	while(!thisBook->contains(id)){
+		cond.wait(lk);
+	}
     break;
   }
   default: {
