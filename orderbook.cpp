@@ -14,7 +14,7 @@ std::vector<std::tuple<int, int, int, int, long long>> Orderbook::getBook() {
 }
 
 void Orderbook::add(int price, int size, int id, long long timestamp) {
-  std::lock_guard<std::mutex> lk(mut);
+  //std::lock_guard<std::mutex> lk(mut);
   book.push_back(std::make_tuple(price, size, id, 0, timestamp));
   std::cerr << "Order in book: " << id << std::endl;
 }
@@ -25,7 +25,7 @@ void Orderbook::remove(int index) {
 }
 
 bool Orderbook::contains(int id) {
-  std::lock_guard<std::mutex> lk(mut);
+  //std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
       return true;
@@ -35,7 +35,7 @@ bool Orderbook::contains(int id) {
 }
 
 bool Orderbook::removeById(int id) {
-  std::lock_guard<std::mutex> lk(mut);
+  //std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
 	    book.erase(book.begin() + (long)i);
@@ -54,7 +54,7 @@ void Orderbook::decrementCount(size_t index, int numSubtracted) {
 }
 
 void Orderbook::decrementCountById(int id, int numSubtracted) {
-  std::lock_guard<std::mutex> lk(mut);
+  //std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
 	    std::get<1>(book[i]) = numSubtracted;
@@ -77,8 +77,8 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
 */
 int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp) {
 	
-  std::lock_guard<std::mutex> lk(mut);
-  std::lock_guard<std::mutex> lk1(otherBook->mut);
+  //std::lock_guard<std::mutex> lk(mut);
+  //std::lock_guard<std::mutex> lk1(otherBook->mut);
   switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
