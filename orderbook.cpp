@@ -75,7 +75,7 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp) {
+int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, long long timestamp) {
 	
   //std::lock_guard<std::mutex> lk(mut);
   //std::lock_guard<std::mutex> lk1(otherBook->mut);

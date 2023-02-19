@@ -26,9 +26,9 @@ void Engine::accept(ClientConnection connection)
 void Engine::updateBuyBook(std::string ticker, int price, int count, int id, long long timestamp)
 {
 	Orderbook* book;
-	Orderbook* otherBook; //
+	//Orderbook* otherBook; //
 	book = std::get<0>(instrumentMap.at(ticker));
-	otherBook = std::get<1>(instrumentMap.at(ticker)); //
+	//otherBook = std::get<1>(instrumentMap.at(ticker)); //
 	{
 		//std::lock_guard<std::mutex> lk(otherBook->mut); // 
 		book->add(price, count, id, timestamp);	
@@ -40,9 +40,9 @@ void Engine::updateBuyBook(std::string ticker, int price, int count, int id, lon
 void Engine::updateSellBook(std::string ticker, int price, int count, int id, long long timestamp)
 {
 	Orderbook * book;
-	Orderbook* otherBook; //
+	//Orderbook* otherBook; //
 	book = std::get<1>(instrumentMap.at(ticker));
-	otherBook = std::get<0>(instrumentMap.at(ticker)); //
+	//otherBook = std::get<0>(instrumentMap.at(ticker)); //
 	{
 		//std::lock_guard<std::mutex> lk(otherBook->mut); //
 		book->add(price, count, id, timestamp);
@@ -136,7 +136,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 			instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
 	}
   }
-  Orderbook* thisBook;
+  //Orderbook* thisBook;
   Orderbook* otherBook;
   // Active orders are
   switch (cmd) {
@@ -144,7 +144,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 	{
 		//std::lock_guard<std::mutex> lk(instrumentMut);
     	otherBook = std::get<1>(instrumentMap.at(ticker));
-		thisBook = std::get<0>(instrumentMap.at(ticker));
+		//thisBook = std::get<0>(instrumentMap.at(ticker));
 	}
 	//std::unique_lock<std::mutex> lk(instrumentMut);
 	updateBuyBook(ticker, price, count, id, timestamp);
@@ -157,7 +157,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 	{
 		//std::lock_guard<std::mutex> lk(instrumentMut);
     	otherBook = std::get<0>(instrumentMap.at(ticker));
-		thisBook = std::get<1>(instrumentMap.at(ticker));
+		//thisBook = std::get<1>(instrumentMap.at(ticker));
 	}
 	//std::unique_lock<std::mutex> lk(instrumentMut);
 	updateSellBook(ticker, price, count, id, timestamp);
@@ -175,7 +175,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Find a match such that shares are left
   while (count > 0) {
 	int prevCount = count;
-  	count = otherBook->findMatch(cmd, price, count, id, thisBook, timestamp);
+  	count = otherBook->findMatch(cmd, price, count, id, timestamp);
     if (count == prevCount) {
 		break;
 	}
