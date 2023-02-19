@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <condition_variable>
 
 #include "io.hpp"
 #include "orderbook.hpp"
@@ -31,6 +32,7 @@ public:
 	Orderbook createBook();
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
+	std::condition_variable cond;
 
 private:
 	void connection_thread(ClientConnection conn);

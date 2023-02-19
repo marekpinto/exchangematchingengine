@@ -24,6 +24,7 @@ public:
   void remove(int index);
   bool removeById(int id);
   void decrementCountById(int id, int numSubtracted);
+  bool contains(int id);
   int  findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp);
 };
 

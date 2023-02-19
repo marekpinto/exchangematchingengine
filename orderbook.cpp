@@ -23,6 +23,16 @@ void Orderbook::remove(int index) {
 
 }
 
+bool Orderbook::contains(int id) {
+  std::lock_guard<std::mutex> lk(mut);
+  for(size_t i = 0; i<book.size(); i++){
+    if (std::get<2>(book[i]) == id) {   
+      return true;
+    }
+  }
+  return false;
+}
+
 bool Orderbook::removeById(int id) {
   std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
@@ -71,7 +81,7 @@ int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, O
   switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
-      int sellPrice = price;
+      int buyPrice = price;
       // Track the index of the tuple for the seller with lowest price
       // Loop through the sell book vector and find the lowest seller
       
@@ -81,8 +91,8 @@ int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, O
       //std::lock_guard<std::mutex> otherLock(otherBook->mut); //
       for(int i = (int)book.size()-1; i>=0; i--) {
         std::cerr << i << std::endl;
-        if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) >0 ) {
-          sellPrice = std::get<0>(book[(size_t)i]);
+        if (std::get<0>(book[(size_t)i]) <= buyPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) >0 ) {
+          buyPrice = std::get<0>(book[(size_t)i]);
           bestIndex = i;
         }
       }
