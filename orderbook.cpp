@@ -66,17 +66,19 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
 */
 int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp) {
 	
-switch (cmd) {
+  std::lock_guard<std::mutex> lk(mut);
+  std::lock_guard<std::mutex> lk1(otherBook->mut);
+  switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
       int sellPrice = price;
       // Track the index of the tuple for the seller with lowest price
       // Loop through the sell book vector and find the lowest seller
       
-      std::lock_guard<std::mutex> lk(mut);
+     // std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
-      { //
-      std::lock_guard<std::mutex> otherLock(otherBook->mut); //
+       //
+      //std::lock_guard<std::mutex> otherLock(otherBook->mut); //
       for(int i = (int)book.size()-1; i>=0; i--) {
         std::cerr << i << std::endl;
         if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) >0 ) {
@@ -84,7 +86,7 @@ switch (cmd) {
           bestIndex = i;
         }
       }
-      } //
+       //
      
       // If we found a seller...
       if (bestIndex != -1) {
@@ -112,17 +114,17 @@ switch (cmd) {
       int buyPrice = price;
       // Loop through the vector to find the highest seller
       
-      std::lock_guard<std::mutex> lk(mut);
+      //std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
-      { //
-        std::lock_guard<std::mutex> otherLock(otherBook->mut); //
+       //
+       // std::lock_guard<std::mutex> otherLock(otherBook->mut); //
         for(int i = (int)book.size()-1; i>=0; i--) {
           if (std::get<0>(book[(size_t)i]) >= buyPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) > 0) {
             buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
           }
         }
-      } //
+       //
       // If we found a buyer...
       if (bestIndex != -1) {
        // std::lock_guard<std::mutex> lk1(otherBook->mut);

@@ -2,7 +2,7 @@ CC = clang
 CXX = clang++
 
 CFLAGS := $(CFLAGS) -g -O3 -Wall -Wextra -pedantic -Werror -std=c18 -pthread
-CXXFLAGS := $(CXXFLAGS) -g -O3 -Wall  -pedantic  -Werror  -std=c++20 -pthread
+CXXFLAGS := $(CXXFLAGS) -g -gdwarf-4 -O3 -Wall  -pedantic  -Werror  -std=c++20 -pthread
 
 BUILDDIR = build
 
