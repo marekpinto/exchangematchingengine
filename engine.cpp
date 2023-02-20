@@ -136,7 +136,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 			instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
 	}
   }
-  //Orderbook* thisBook;
+  Orderbook* thisBook;
   Orderbook* otherBook;
   // Active orders are
   switch (cmd) {
@@ -144,7 +144,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 	{
 		//std::lock_guard<std::mutex> lk(instrumentMut);
     	otherBook = std::get<1>(instrumentMap.at(ticker));
-		//thisBook = std::get<0>(instrumentMap.at(ticker));
+	thisBook = std::get<0>(instrumentMap.at(ticker));
 	}
 	//std::unique_lock<std::mutex> lk(instrumentMut);
 	updateBuyBook(ticker, price, count, id, timestamp);
@@ -157,7 +157,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 	{
 		//std::lock_guard<std::mutex> lk(instrumentMut);
     	otherBook = std::get<0>(instrumentMap.at(ticker));
-		//thisBook = std::get<1>(instrumentMap.at(ticker));
+	thisBook = std::get<1>(instrumentMap.at(ticker));
 	}
 	//std::unique_lock<std::mutex> lk(instrumentMut);
 	updateSellBook(ticker, price, count, id, timestamp);
@@ -167,10 +167,15 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
     break;
   }
   default: {
+	otherBook = std::get<0>(instrumentMap.at(ticker));
+	thisBook = std::get<1>(instrumentMap.at(ticker));
 	break;
   }
   // End switch
   }
+
+  std::lock_guard<std::mutex> lock1(thisBook->mut);
+  std::lock_guard<std::mutex> lock2(otherBook->mut);
 
   // Find a match such that shares are left
   while (count > 0) {

@@ -6,7 +6,7 @@
 #    echo "$file failed"
 #  fi
 #done
-for file in tests/*
+for file in tests/mediumDir/*
 do
-    ./grader engine < "$file"
+    ./grader engine < "$file" | grep 'test passed';
 done

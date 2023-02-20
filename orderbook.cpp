@@ -9,7 +9,7 @@ size_t Orderbook::length() {
 }
 
 std::vector<std::tuple<int, int, int, int, long long>> Orderbook::getBook() {
-  std::lock_guard<std::mutex> lk(mut);
+  //std::lock_guard<std::mutex> lk(mut);
   return book;
 }
 
