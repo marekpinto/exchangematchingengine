@@ -77,7 +77,7 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
 */
 int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, long long timestamp) {
 	
-  //std::lock_guard<std::mutex> lk(mut);
+  std::lock_guard<std::mutex> lk(mut);
   //std::lock_guard<std::mutex> lk1(otherBook->mut);
   switch (cmd) {
     case input_buy: {
@@ -91,23 +91,13 @@ int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, l
        //
       //std::lock_guard<std::mutex> otherLock(otherBook->mut); //
       for(int i = (int)book.size()-1; i>=0; i--) {
-        std::cerr << "Price of comparitor: " << std::get<0>(book[(size_t)i]) << std::endl;
-        std::cerr << "Price of active: " << buyPrice << std::endl;
-	std::cerr << "Check comp <= active" << std::endl;
         if (std::get<0>(book[(size_t)i]) <= buyPrice /* && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) >0*/ ) {
           buyPrice = std::get<0>(book[(size_t)i]);
           bestIndex = i;
-	  std::cerr << "Changed buy price: " << buyPrice << std::endl;
-            std::cerr << "Changed bestIndex: " << bestIndex << std::endl;
         }
       }
-       //
-     
+       
       // If we found a seller..
-      if (activeId == 110 || activeId == 113) {
-	std::cerr << activeId << ": " << bestIndex << std::endl;
-	std::cerr << "Book size for " << activeId << ": " << book.size() << std::endl;	
-      }
       if (bestIndex != -1) {
        //`std::lock_guard<std::mutex> lk1(otherBook->mut);
         incrementExId((size_t)bestIndex);
@@ -135,37 +125,25 @@ int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, l
       
       //std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
-       //
-       // std::lock_guard<std::mutex> otherLock(otherBook->mut); //
-      std::cerr << "Check cmp >= bp" << std::endl;
+       // std::lock_guard<std::mutex> otherLock(otherBook->mut); 
         for(int i = (int)book.size()-1; i>=0; i--) {
-	std::cerr << "Price of comparitor: " << std::get<0>(book[(size_t)i]) << std::endl;
-	std::cerr << "Price of active: " << buyPrice << std::endl;
           if (std::get<0>(book[(size_t)i]) >= buyPrice /* && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) > 0 */) {
             buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
-	    std::cerr << "Changed buy price: " << buyPrice << std::endl;
-	    std::cerr << "Changed bestIndex: " << bestIndex << std::endl;
           }
         }
        //
       // If we found a buyer...
-      if (activeId == 110 || activeId == 113) {
-        std::cerr << activeId << ": " << bestIndex << std::endl;
-	std::cerr << "Book size for " << activeId << ": " << book.size() << std::endl;
-      }
       if (bestIndex != -1) {
        // std::lock_guard<std::mutex> lk1(otherBook->mut);
         incrementExId((size_t)bestIndex);
         // If we are selling more than they are buying, remove the buyer and lower our sell count
 	if (count >= std::get<1>(book[(size_t)bestIndex])) {
-	std::cerr << "hit if" << std::endl;
           Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)std::get<1>(book[(size_t)bestIndex]), timestamp);
           count -= std::get<1>(book[(size_t)bestIndex]);
 	        remove(bestIndex);
         // Otherwise, set our count to 0 and subtract our count from the buyers order
         }  else {
-	std::cerr << "hit else" << std::endl;
           Output::OrderExecuted((uint32_t)std::get<2>(book[(size_t)bestIndex]), (uint32_t)activeId, (uint32_t)std::get<3>(book[(size_t)bestIndex]), (uint32_t)std::get<0>(book[(size_t)bestIndex]), (uint32_t)count, timestamp);
           decrementCount((size_t)bestIndex, count);
 	        count = 0;
