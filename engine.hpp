@@ -30,6 +30,7 @@ public:
 	void updateSellBook(std::string ticker, int price, int count, int id, long long timestamp);
 	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id, long long timestamp);
 	Orderbook createBook();
+	Orderbook* accessMap(int action, std::string ticker, int bookNum);
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
 	std::condition_variable cond;
