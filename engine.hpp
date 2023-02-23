@@ -11,13 +11,15 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <memory>
+#include <shared_mutex>
 
 #include "io.hpp"
 #include "orderbook.hpp"
 
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
-typedef std::unordered_map< std::string, std::tuple<Orderbook *, Orderbook *> > orderBookHash;
+typedef std::unordered_map< std::string, std::tuple<std::shared_ptr<Orderbook>, std::shared_ptr<Orderbook>, std::shared_mutex> > orderBookHash;
 
 
 struct Engine
