@@ -33,6 +33,7 @@ public:
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
 	std::condition_variable cond;
+	void waitEngine();
 
 private:
 	void connection_thread(ClientConnection conn);
