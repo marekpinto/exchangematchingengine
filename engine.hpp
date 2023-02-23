@@ -31,6 +31,7 @@ public:
 	Orderbook createBook();
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
+	void waitEngine();
 
 private:
 	void connection_thread(ClientConnection conn);
