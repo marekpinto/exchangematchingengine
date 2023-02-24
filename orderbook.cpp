@@ -77,7 +77,7 @@ switch (cmd) {
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
           std::cerr << i << std::endl;
-          if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) >0 ) {
+          if (std::get<0>(book[(size_t)i]) <= sellPrice) {
             sellPrice = std::get<0>(book[(size_t)i]);
             bestIndex = i;
           }
@@ -112,7 +112,7 @@ switch (cmd) {
        // std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
-          if (std::get<0>(book[(size_t)i]) >= buyPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) > 0) {
+          if (std::get<0>(book[(size_t)i]) >= buyPrice) {
             buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
           }

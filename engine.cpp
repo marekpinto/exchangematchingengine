@@ -15,7 +15,8 @@
 //makes a thread every time a connection comes in
 
 Engine::Engine()
-{  
+{ 
+       	std::unique_lock<std::mutex> lk(instrumentMut);	
 	orderBookHash instrumentMap;
 }
 
@@ -83,11 +84,11 @@ void Engine::connection_thread(ClientConnection connection)
 				auto output_time = getCurrentTimestamp();
 				if (orders.contains((int)input.order_id)) {
 					auto ordersPair = orders.at((int)input.order_id);
-					std::lock_guard<std::mutex> lk(instrumentMut);
+					std::unique_lock<std::mutex> lk(instrumentMut);
 					//auto correspondingTuple = instrumentMap.at(ordersPair.first);
 					int type = ordersPair.second;
 					//std::mutex bookMut = std::get<1>(orders.at((int)input.order_id));
-					std::shared_lock<std::shared_mutex> bookLock(*std::get<2>(instrumentMap.at(ordersPair.first)));
+					std::unique_lock<std::mutex> bookLock(*std::get<2>(instrumentMap.at(ordersPair.first)));
 					bool result = false;
 					if (type == 0) {
 						result = std::get<0>(instrumentMap.at(ordersPair.first)) -> removeById((int)input.order_id);
@@ -120,14 +121,14 @@ void Engine::connection_thread(ClientConnection connection)
 				if (!result){
 					if (input.type == input_buy) {
 						//HASHMAP INSERTED
-						std::lock_guard<std::mutex> lk(instrumentMut);
+						std::unique_lock<std::mutex> lk(instrumentMut);
 						auto orderbook_mutex_tuple = std::make_pair(ticker, 0);
 						orders.emplace(input.order_id, orderbook_mutex_tuple);
 						//orders.emplace(input.order_id, std::tuple<std::shared_ptr<Orderbook>, std::shared_mutex>(std::get<0>(instrumentMap.at(ticker)), std::get<2>(instrumentMap.at(ticker))));
 					}
 					else if (input.type == input_sell) {
 						//HASHMAP INSERTED
-						std::lock_guard<std::mutex> lk(instrumentMut);
+						std::unique_lock<std::mutex> lk(instrumentMut);
 						auto orderbook_mutex_tuple = std::make_pair(ticker, 1);
 						orders.emplace(input.order_id, orderbook_mutex_tuple);
 					}
@@ -146,16 +147,16 @@ void Engine::connection_thread(ClientConnection connection)
 bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id, long long timestamp) {
   // Retrieve otherBook param for findMatch
   {
-	std::lock_guard<std::mutex> lk(instrumentMut);
+	std::unique_lock<std::mutex> lk(instrumentMut);
 	if (!instrumentMap.contains(ticker)){
 			//HASHMAP INSERTED
 			//std::mutex mtx;
-			instrumentMap.emplace(ticker, std::make_tuple(std::make_shared<Orderbook>(), std::make_shared<Orderbook>(), std::make_shared<std::shared_mutex>()));
+			instrumentMap.emplace(ticker, std::make_tuple(std::make_shared<Orderbook>(), std::make_shared<Orderbook>(), std::make_shared<std::mutex>()));
 	}
   }
-  std::lock_guard<std::mutex> lk(instrumentMut);
+  std::unique_lock<std::mutex> lk(instrumentMut);
   //std::mutex bookMut std::get<2>(instrumentMap.at(ticker));
-  std::shared_lock<std::shared_mutex> bookLock(*std::get<2>(instrumentMap.at(ticker)));
+  std::unique_lock<std::mutex> bookLock(*std::get<2>(instrumentMap.at(ticker)));
   //Orderbook* thisBook;
   std::shared_ptr<Orderbook> otherBook;
   // Active orders are
