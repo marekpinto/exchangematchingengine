@@ -15,10 +15,10 @@
 
 int Engine::getCurrentTimestamp() 
 {
-					        std::unique_lock<std::mutex> timelk(timestampMut);
-					        		                timestamp +=1;
-					        		                					return timestamp;
-					        		                							                }
+	std::unique_lock<std::mutex> timelk(timestampMut);
+	timestamp +=1;
+	return timestamp;
+}
 				
 
 Engine::Engine()
@@ -37,7 +37,7 @@ void Engine::accept(ClientConnection connection)
 
 void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
 {
-		std::lock_guard<std::mutex> lk(instrumentMut);
+	std::lock_guard<std::mutex> lk(instrumentMut);
 	(std::get<0>(instrumentMap.at(ticker)))->add(price, count, id);	
 }
 
@@ -78,7 +78,7 @@ void Engine::connection_thread(ClientConnection connection)
 				// Remember to take timestamp at the appropriate time, or compute
 				// an appropriate timestamp!
 				if (orders.contains((int)input.order_id)) {
-					bool result = orders.at((int)input.order_id) -> removeById((int)input.order_id);
+					bool result = orders.at((int)input.order_id)->removeById((int)input.order_id);
 					if (result) {
 						Output::OrderDeleted(input.order_id, true, getCurrentTimestamp());
 						orders.erase((int)input.order_id);
@@ -184,15 +184,15 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
     // updateBuyBook(ticker, price, count, id);
-	  std::lock_guard<std::mutex> lk(instrumentMut);
-	  std::get<0>(instrumentMap.at(ticker))->decrementCountById(id, count);
-	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
+	 std::lock_guard<std::mutex> lk(instrumentMut);
+	 std::get<0>(instrumentMap.at(ticker))->decrementCountById(id, count);
+	 Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   // Update sell book if command is sell
   } else {
     // updateSellBook(ticker, price, count, id);
-        std::lock_guard<std::mutex> lk(instrumentMut);
-	std::get<1>(instrumentMap.at(ticker))->decrementCountById(id, count);
-	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
+     std::lock_guard<std::mutex> lk(instrumentMut);
+	 std::get<1>(instrumentMap.at(ticker))->decrementCountById(id, count);
+	 Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   }
   return false;
 }
