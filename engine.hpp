@@ -19,7 +19,7 @@
 
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
-typedef std::unordered_map< std::string, std::tuple<std::shared_ptr<Orderbook>, std::shared_ptr<Orderbook>, std::shared_ptr<std::mutex>> > orderBookHash;
+typedef std::unordered_map< std::string, std::tuple<std::shared_ptr<Orderbook>, std::shared_ptr<Orderbook>, std::shared_ptr<std::shared_mutex>> > orderBookHash;
 
 
 struct Engine
@@ -31,7 +31,7 @@ public:
 	void updateSellBook(std::string ticker, int price, int count, int id);
 	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id);
 	orderBookHash instrumentMap;
-	mutable std::mutex instrumentMut;
+	mutable std::shared_mutex instrumentMut;
 	mutable std::mutex timestampMut;
 	int timestamp;
 	int getCurrentTimestamp();

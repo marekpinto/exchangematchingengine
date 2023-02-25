@@ -16,7 +16,7 @@
 
 Engine::Engine()
 { 
-       	std::unique_lock<std::mutex> lk(instrumentMut);	
+       	std::shared_lock<std::shared_mutex> lk(instrumentMut);	
 	orderBookHash instrumentMap;
 	std::unique_lock<std::mutex> timelk(timestampMut);
 	timestamp = 0;
@@ -45,8 +45,13 @@ void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
 	//std::mutex bookMut  std::get<2>(instrumentMap.at(ticker));
 	//std::lock_guard<std::mutex> bookLock(bookMut);
 	//std::lock_guard<std::mutex> lk(bookMut);
-
+	{
+	std::shared_lock<std::shared_mutex> lk(instrumentMut);
+	std::shared_ptr<std::shared_mutex> bookMut = std::get<2>(instrumentMap.at(ticker));
 	std::shared_ptr<Orderbook> book = std::get<0>(instrumentMap.at(ticker));
+	}
+
+	std::shared_lock<std::shared_mutex> bookLock(*bookMut);
 	
 	book->add(price, count, id);	
 	
@@ -57,10 +62,17 @@ void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 	//std::lock_guard<std::mutex> lk(instrumentMut);
 	//std::mutex bookMut std::get<2>(instrumentMap.at(ticker));
 	//std::lock_guard<std::mutex> bookLock(bookMut);
-
+	{
+	std::shared_lock<std::shared_mutex> lk(instrumentMut);
+	std::shared_ptr<std::shared_mutex> bookMut = std::get<2>(instrumentMap.at(ticker));
 	std::shared_ptr<Orderbook> book = std::get<1>(instrumentMap.at(ticker));
+	}
+
+	std::shared_lock<std::shared_mutex> bookLock(*bookMut);
 	
-	book->add(price, count, id);
+	book->add(price, count, id);	
+	
+	}
 
 }
 
@@ -95,19 +107,25 @@ void Engine::connection_thread(ClientConnection connection)
 				//auto output_time = getCurrentTimestamp();
 				if (orders.contains((int)input.order_id)) {
 					auto ordersPair = orders.at((int)input.order_id);
-					std::unique_lock<std::mutex> lk(instrumentMut);
+					//std::shared_lock<std::shared_mutex> lk(instrumentMut);
 					//auto correspondingTuple = instrumentMap.at(ordersPair.first);
 					int type = ordersPair.second;
 					//std::mutex bookMut = std::get<1>(orders.at((int)input.order_id));
-					//REAL std::unique_lock<std::mutex> bookLock(*std::get<2>(instrumentMap.at(ordersPair.first)));
-					bool result = false;
+					{
+					std::shared_lock<std::shared_mutex> lk(instrumentMut);
+					std::shared_ptr<std::shared_mutex> bookMut = std::get<2>(instrumentMap.at(ticker));
 					if (type == 0) {
-						result = std::get<0>(instrumentMap.at(ordersPair.first)) -> removeById((int)input.order_id);
+						std::shared_ptr<Orderbook> book = std::get<0>(instrumentMap.at(ordersPair.first));
 					} else if (type == 1) {
-						result = std::get<1>(instrumentMap.at(ordersPair.first)) -> removeById((int)input.order_id);
-					} else {
-						std::cerr << "Error: type != 1 and type != 0" << std::endl;
+						std::shared_ptr<Orderbook> book = std::get<1>(instrumentMap.at(ordersPair.first));
 					}
+					}
+
+					{
+					std::shared_lock<std::shared_mutex> bookLock(*bookMut);
+					bool result = book->removeById((int)input.order_id);
+					}
+
 
 					if (result) {
 						Output::OrderDeleted(input.order_id, true, getCurrentTimestamp());
