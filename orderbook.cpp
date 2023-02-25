@@ -8,14 +8,14 @@ size_t Orderbook::length() {
   return book.size();
 }
 
-std::vector<std::tuple<int, int, int, int, long long>> Orderbook::getBook() {
+std::vector<std::tuple<int, int, int, int>> Orderbook::getBook() {
   std::lock_guard<std::mutex> lk(mut);
   return book;
 }
 
-void Orderbook::add(int price, int size, int id, long long timestamp) {
+void Orderbook::add(int price, int size, int id) {
   std::lock_guard<std::mutex> lk(mut);
-  book.push_back(std::make_tuple(price, size, id, 0, timestamp));
+  book.push_back(std::make_tuple(price, size, id, 0));
 }
 
 void Orderbook::remove(int index) {
@@ -64,7 +64,7 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
 
   The function will remove a resting buy or sell order if fulfilled along the way
 */
-int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, Orderbook* otherBook, long long timestamp) {
+int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, int timestamp) {
 	
 switch (cmd) {
     case input_buy: {
@@ -77,7 +77,7 @@ switch (cmd) {
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
           std::cerr << i << std::endl;
-          if (std::get<0>(book[(size_t)i]) <= sellPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) >0 ) {
+          if (std::get<0>(book[(size_t)i]) <= sellPrice ) {
             sellPrice = std::get<0>(book[(size_t)i]);
             bestIndex = i;
           }
@@ -112,7 +112,7 @@ switch (cmd) {
         std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
-          if (std::get<0>(book[(size_t)i]) >= buyPrice && std::get<4>(book[(size_t)i]) <= timestamp && std::get<1>(book[(size_t)i]) > 0) {
+          if (std::get<0>(book[(size_t)i]) >= buyPrice ) {
             buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
           }
