@@ -11,6 +11,8 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <memory>
+#include <shared_mutex>
 #include <condition_variable>
 
 #include "io.hpp"
@@ -18,7 +20,7 @@
 
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
-typedef std::unordered_map< std::string, std::tuple<Orderbook *, Orderbook *> > orderBookHash;
+typedef std::unordered_map< std::string, std::tuple<std::shared_ptr<Orderbook>, std::shared_ptr<Orderbook>, std::shared_ptr<std::mutex>> > orderBookHash;
 
 
 struct Engine
@@ -29,7 +31,6 @@ public:
 	void updateBuyBook(std::string ticker, int price, int count, int id);
 	void updateSellBook(std::string ticker, int price, int count, int id);
 	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id);
-	Orderbook createBook();
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
 	mutable std::mutex timestampMut;
@@ -44,11 +45,5 @@ private:
 };
 
 
-
-
-inline std::chrono::microseconds::rep getCurrentTimestamp() noexcept
-{
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-}
 
 #endif
