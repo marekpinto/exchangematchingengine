@@ -25,7 +25,6 @@ public:
   bool removeById(int id);
   void decrementCountById(int id, int numSubtracted);
   int  findMatch(CommandType cmd, int price, int count, int activeId, int timestamp);
-  void wait();
 };
 
 #endif

@@ -14,8 +14,6 @@ std::vector<std::tuple<int, int, int, int>> Orderbook::getBook() {
   return book;
 }
 
-void Orderbook::wait() {}
-
 void Orderbook::add(int price, int size, int id) {
   std::lock_guard<std::mutex> lk(mut);
   book.push_back(std::make_tuple(price, size, id, 0));
@@ -77,7 +75,6 @@ switch (cmd) {
       // Loop through the sell book vector and find the lowest seller
       
       std::lock_guard<std::mutex> lk(mut);
-      wait();
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
           if (std::get<0>(book[(size_t)i]) <= sellPrice ) {
@@ -113,7 +110,6 @@ switch (cmd) {
       // Loop through the vector to find the highest seller
       
       std::lock_guard<std::mutex> lk(mut);
-      wait();
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
           if (std::get<0>(book[(size_t)i]) >= buyPrice ) {
