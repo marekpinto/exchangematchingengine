@@ -11,7 +11,6 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
-#include<unordered_map>
 
 #include "io.hpp"
 #include "orderbook.hpp"
@@ -19,7 +18,6 @@
 // the tuple is of form (price, size)
 // to sort: sort(orderBook.start(), orderBook.end());
 typedef std::unordered_map< std::string, std::tuple<Orderbook *, Orderbook *> > orderBookHash;
-typedef std::unordered_map<int, int> timeMap;
 
 
 struct Engine
@@ -32,7 +30,6 @@ public:
 	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id);
 	Orderbook createBook();
 	orderBookHash instrumentMap;
-	timeMap timestampMap;
 	mutable std::mutex instrumentMut;
 	mutable std::mutex timestampMut;
 	int timestamp;
