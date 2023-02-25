@@ -46,16 +46,16 @@ void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
 	//std::mutex bookMut  std::get<2>(instrumentMap.at(ticker));
 	//std::lock_guard<std::mutex> bookLock(bookMut);
 	//std::lock_guard<std::mutex> lk(bookMut);
-	std::shared_ptr<std::mutex> bookMut;
+	//std::shared_ptr<std::mutex> bookMut;
 	std::shared_ptr<Orderbook> book;
 	{
 	std::unique_lock<std::mutex> lk(instrumentMut);
 	
-	bookMut = std::get<2>(instrumentMap.at(ticker));
+	//bookMut = std::get<2>(instrumentMap.at(ticker));
 	book = std::get<0>(instrumentMap.at(ticker));
 	}
 
-	std::unique_lock<std::mutex> bookLock(*bookMut);
+	//std::unique_lock<std::mutex> bookLock(*bookMut);
 	
 	book->add(price, count, id);	
 	
@@ -66,15 +66,15 @@ void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 	//std::lock_guard<std::mutex> lk(instrumentMut);
 	//std::mutex bookMut std::get<2>(instrumentMap.at(ticker));
 	//std::lock_guard<std::mutex> bookLock(bookMut);
-	std::shared_ptr<std::mutex> bookMut;
+	//std::shared_ptr<std::mutex> bookMut;
 	std::shared_ptr<Orderbook> book;
 	{
 	std::unique_lock<std::mutex> lk(instrumentMut);
-	bookMut = std::get<2>(instrumentMap.at(ticker));
+	//bookMut = std::get<2>(instrumentMap.at(ticker));
 	book = std::get<1>(instrumentMap.at(ticker));
 	}
 
-	std::unique_lock<std::mutex> bookLock(*bookMut);
+	//std::unique_lock<std::mutex> bookLock(*bookMut);
 	
 	book->add(price, count, id);	
 	
@@ -195,7 +195,6 @@ void Engine::connection_thread(ClientConnection connection)
 
 bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
   // Retrieve otherBook param for findMatch
- 	int time;
 	{ 
 	std::unique_lock<std::mutex> lk(instrumentMut);
 	if (!instrumentMap.contains(ticker)){
@@ -224,8 +223,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 		 bookMut = std::get<2>(instrumentMap.at(ticker));
 		//thisBook = std::get<0>(instrumentMap.at(ticker));
 		}
-		updateBuyBook(ticker, price, count, id);
-		time = getCurrentTimestamp();
+		//updateBuyBook(ticker, price, count, id);
     break;
   }
   case input_sell: {
@@ -236,8 +234,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 			bookMut = std::get<2>(instrumentMap.at(ticker));
 		//thisBook = std::get<1>(instrumentMap.at(ticker));
 			   }
-		updateSellBook(ticker, price, count, id);
-    		time = getCurrentTimestamp();
+		//updateSellBook(ticker, price, count, id);
 		break;
   }
   default: {
@@ -245,12 +242,12 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   }
   // End switch
   }
-
+	std::unique_lock<std::mutex> bookLock(*bookMut);
   // Find a match such that shares are left
   while (count > 0) {
 	int prevCount = count;
 	{
-	std::unique_lock<std::mutex> bookLock(*bookMut);
+	//std::unique_lock<std::mutex> bookLock(*bookMut);
   	count = otherBook->findMatch(cmd, price, count, id, getCurrentTimestamp());
 	}
 	if (count == prevCount) {
@@ -261,7 +258,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   if (count == 0) {
 	// Switch to remove active order if handled
 	  {
-		  std::unique_lock<std::mutex> bookLock(*bookMut);
+		  //std::unique_lock<std::mutex> bookLock(*bookMut);
 		  thisBook->removeById(id);
 	  }
 	
@@ -270,10 +267,24 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   }
   // Otherwise, update buy book if count is non-zero
 	  {
-		  std::unique_lock<std::mutex> bookLock(*bookMut);
+		  //std::unique_lock<std::mutex> bookLock(*bookMut);
 		  thisBook->decrementCountById(id, count);
 	}
-	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, time);
+
+	switch(cmd) {
+		case input_buy: {
+			updateBuyBook(ticker, price, count, id);
+			break;
+		}
+		case input_sell: {
+			updateSellBook(ticker, price, count, id);
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   
   return false;
 }
