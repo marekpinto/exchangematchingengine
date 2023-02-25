@@ -27,11 +27,14 @@ struct Engine
 public:
 	Engine();
 	void accept(ClientConnection conn);
-	void updateBuyBook(std::string ticker, int price, int count, int id, long long timestamp);
-	void updateSellBook(std::string ticker, int price, int count, int id, long long timestamp);
-	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id, long long timestamp);
+	void updateBuyBook(std::string ticker, int price, int count, int id);
+	void updateSellBook(std::string ticker, int price, int count, int id);
+	bool handleOrder(std::string ticker, CommandType cmd, int price, int count, int id);
 	orderBookHash instrumentMap;
 	mutable std::mutex instrumentMut;
+	mutable std::mutex timestampMut;
+	int timestamp;
+	int getCurrentTimestamp();
 
 private:
 	void connection_thread(ClientConnection conn);
@@ -42,11 +45,5 @@ private:
 };
 
 
-
-
-inline std::chrono::microseconds::rep getCurrentTimestamp() noexcept
-{
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-}
 
 #endif
