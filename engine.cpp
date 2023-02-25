@@ -178,7 +178,7 @@ void Engine::connection_thread(ClientConnection connection)
 					else if (input.type == input_sell) {
 						//HASHMAP INSERTED
 						std::unique_lock<std::mutex> lk(instrumentMut);
-						auto orderbook_mutex_tuple = std::make_pair(std::get<1>(instrumentMap.at(ticker)), std::get<2>(instrumentMap.at(ticker)));
+						auto orderbook_mutex_tuple = std::make_pair(std::get<1>(instrumentMap.at(ticker)), std::get<3>(instrumentMap.at(ticker)));
 						orders.emplace(input.order_id, orderbook_mutex_tuple);
 					}
 				}
@@ -201,9 +201,8 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 			//HASHMAP INSERTED
 			//std::mutex mtx;
 			//potential for race condition on making Orderbook???
-			std::shared_ptr<std::mutex> bookMut = std::make_shared<std::mutex>();
 			//std::unique_lock<std::mutex> bookLock(*bookMut);	
-			instrumentMap.emplace(ticker, std::make_tuple(std::make_shared<Orderbook>(), std::make_shared<Orderbook>(), bookMut));
+			instrumentMap.emplace(ticker, std::make_tuple(std::make_shared<Orderbook>(), std::make_shared<Orderbook>(), std::make_shared<std::mutex>(), std::make_shared<std::mutex>()));
 	}
 	}
  // std::unique_lock<std::mutex> lk(instrumentMut);
@@ -213,6 +212,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 	std::shared_ptr<Orderbook> thisBook;
   std::shared_ptr<Orderbook> otherBook;
   std::shared_ptr<std::mutex> bookMut;
+  std::shared_ptr<std::mutex> otherMut;
   // Active orders are
   switch (cmd) {
   case input_buy: {
@@ -221,6 +221,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 		 thisBook = std::get<0>(instrumentMap.at(ticker));
 		 otherBook = std::get<1>(instrumentMap.at(ticker));
 		 bookMut = std::get<2>(instrumentMap.at(ticker));
+		 otherMut = std::get<3>(instrumentMap.at(ticker));
 		//thisBook = std::get<0>(instrumentMap.at(ticker));
 		}
 		//updateBuyBook(ticker, price, count, id);
@@ -231,7 +232,8 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 			   std::unique_lock<std::mutex> lk(instrumentMut);
 		  thisBook = std::get<1>(instrumentMap.at(ticker));
     			otherBook = std::get<0>(instrumentMap.at(ticker));
-			bookMut = std::get<2>(instrumentMap.at(ticker));
+			bookMut = std::get<3>(instrumentMap.at(ticker));
+			otherMut = std::get<2>(instrumentMap.at(ticker));
 		//thisBook = std::get<1>(instrumentMap.at(ticker));
 			   }
 		//updateSellBook(ticker, price, count, id);
@@ -242,7 +244,8 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   }
   // End switch
   }
-	std::unique_lock<std::mutex> bookLock(*bookMut);
+  {
+	std::unique_lock<std::mutex> otherLock(*otherMut);
   // Find a match such that shares are left
   while (count > 0) {
 	int prevCount = count;
@@ -254,6 +257,9 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 		break;
 	}
   }
+  }
+  
+	  std::unique_lock<std::mutex> bookLock(*bookMut);
   // If count is 0, order is handled
   if (count == 0) {
 	// Switch to remove active order if handled
