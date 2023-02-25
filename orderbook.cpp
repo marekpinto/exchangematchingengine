@@ -4,16 +4,6 @@
 #include <mutex>
 #include "io.hpp"
 
-size_t Orderbook::length() {
-  std::lock_guard<std::mutex> lk(mut);
-  return book.size();
-}
-
-std::vector<std::tuple<int, int, int, int>> Orderbook::getBook() {
-  std::lock_guard<std::mutex> lk(mut);
-  return book;
-}
-
 void Orderbook::add(int price, int size, int id) {
   std::lock_guard<std::mutex> lk(mut);
   book.push_back(std::make_tuple(price, size, id, 0));
@@ -25,7 +15,7 @@ void Orderbook::remove(int index) {
 }
 
 bool Orderbook::removeById(int id) {
-      std::lock_guard<std::mutex> lk(mut);
+  std::lock_guard<std::mutex> lk(mut);
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
 	    book.erase(book.begin() + (long)i);
@@ -72,8 +62,7 @@ switch (cmd) {
       // Set sell price equal to buy price
       int sellPrice = price;
       // Track the index of the tuple for the seller with lowest price
-      // Loop through the sell book vector and find the lowest seller
-      
+      // Loop through the sell book vector and find the lowest seller  
       std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
@@ -81,8 +70,7 @@ switch (cmd) {
             sellPrice = std::get<0>(book[(size_t)i]);
             bestIndex = i;
           }
-        }
-     
+        }    
       // If we found a seller...
       if (bestIndex != -1) {
        //`std::lock_guard<std::mutex> lk1(otherBook->mut);
@@ -108,7 +96,6 @@ switch (cmd) {
       // Set buy price equal to sell price
       int buyPrice = price;
       // Loop through the vector to find the highest seller
-      
       std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
         for(int i = (int)book.size()-1; i>=0; i--) {
