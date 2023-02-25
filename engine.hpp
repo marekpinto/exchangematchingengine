@@ -36,6 +36,7 @@ public:
 	mutable std::mutex timestampMut;
 	int timestamp;
 	int getCurrentTimestamp();
+
 private:
 	void connection_thread(ClientConnection conn);
 

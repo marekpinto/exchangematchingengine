@@ -9,14 +9,10 @@
 
 #include "io.hpp"
 #include "engine.hpp"
+
 #include "orderbook.hpp"
 
-int Engine::getCurrentTimestamp() 
-{
-	std::unique_lock<std::mutex> timelk(timestampMut);
-	timestamp +=1;
-	return timestamp;
-}			
+//makes a thread every time a connection comes in
 
 Engine::Engine()
 { 
@@ -85,6 +81,9 @@ void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 	
 
 }
+
+
+
 
 void Engine::connection_thread(ClientConnection connection)
 {
@@ -186,6 +185,11 @@ void Engine::connection_thread(ClientConnection connection)
 				break;
 			}
 		}
+
+		// Additionally:
+
+		// Remember to take timestamp at the appropriate time, or compute
+		// an appropriate timestamp!
 	}
 }
 
