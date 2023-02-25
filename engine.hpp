@@ -18,10 +18,7 @@
 #include "io.hpp"
 #include "orderbook.hpp"
 
-// the tuple is of form (price, size)
-// to sort: sort(orderBook.start(), orderBook.end());
 typedef std::unordered_map< std::string, std::tuple<std::shared_ptr<Orderbook>, std::shared_ptr<Orderbook>, std::shared_ptr<std::mutex>> > orderBookHash;
-
 
 struct Engine
 {
@@ -39,10 +36,6 @@ public:
 
 private:
 	void connection_thread(ClientConnection conn);
-
-	// tracks a mapping from instrument names to a buy orderBook and sell orderBook, respectively.
-	//orderBookHash instrumentMap;
-
 };
 
 

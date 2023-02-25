@@ -13,10 +13,6 @@ public:
   std::vector<std::tuple<int, int, int, int>> book;
   mutable std::mutex mut;
 
-  // Accessors
-  size_t length();
-  std::vector<std::tuple<int, int, int, int>> getBook();
-  void print_counts();
   // Mutators
   void incrementExId(size_t index);
   void decrementCount(size_t index, int numSubtracted);

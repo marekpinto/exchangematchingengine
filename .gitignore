@@ -1,15 +1,6 @@
-<<<<<<< HEAD
 engine
 client
 /build
 /.deps
 compile_commands.json
 .cache
-=======
-engine
-client
-/build
-/.deps
-compile_commands.json
-.cache
->>>>>>> 03fabfa3429c70346d88ee1898639303f9aeff92
