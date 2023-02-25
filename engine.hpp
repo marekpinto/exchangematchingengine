@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <condition_variable>
 
 #include "io.hpp"
 #include "orderbook.hpp"

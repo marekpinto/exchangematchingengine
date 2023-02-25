@@ -10,8 +10,21 @@ void Orderbook::add(int price, int size, int id) {
 }
 
 void Orderbook::remove(int index) {
+  std::lock_guard<std::mutex> lk(mut);
+  wait();
   book.erase(book.begin() + index);
 
+}
+
+bool Orderbook::contains(int id) {
+  std::lock_guard<std::mutex> lk(mut);
+  wait();
+  for(size_t i = 0; i<book.size(); i++){
+    if (std::get<2>(book[i]) == id) {   
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Orderbook::removeById(int id) {
@@ -26,15 +39,20 @@ bool Orderbook::removeById(int id) {
 }
 
 void Orderbook::incrementExId(size_t index) {
+  std::lock_guard<std::mutex> lk(mut);
+  wait();
   std::get<3>(book[index]) += 1;
 }
 
 void Orderbook::decrementCount(size_t index, int numSubtracted) {
+  std::lock_guard<std::mutex> lk(mut);
+  wait();
   std::get<1>(book[index]) -= numSubtracted;
 }
 
 void Orderbook::decrementCountById(int id, int numSubtracted) {
   std::lock_guard<std::mutex> lk(mut);
+  wait();
   for(size_t i = 0; i<book.size(); i++){
     if (std::get<2>(book[i]) == id) {   
 	    std::get<1>(book[i]) = numSubtracted;
@@ -57,10 +75,12 @@ void Orderbook::decrementCountById(int id, int numSubtracted) {
 */
 int  Orderbook::findMatch(CommandType cmd, int price, int count, int activeId, int timestamp) {
 	
-switch (cmd) {
+  // std::lock_guard<std::mutex> lk(mut);
+  // std::lock_guard<std::mutex> lk1(otherBook->mut);
+  switch (cmd) {
     case input_buy: {
       // Set sell price equal to buy price
-      int sellPrice = price;
+      int buyPrice = price;
       // Track the index of the tuple for the seller with lowest price
       // Loop through the sell book vector and find the lowest seller  
       std::lock_guard<std::mutex> lk(mut);
@@ -98,13 +118,19 @@ switch (cmd) {
       // Loop through the vector to find the highest seller
       std::lock_guard<std::mutex> lk(mut);
       int bestIndex = -1;
+       //
+       // std::lock_guard<std::mutex> otherLock(otherBook->mut); //
+       {
+        std::lock_guard<std::mutex> lk(mut);
+        wait();
         for(int i = (int)book.size()-1; i>=0; i--) {
           if (std::get<0>(book[(size_t)i]) >= buyPrice ) {
             buyPrice = std::get<0>(book[(size_t)i]);
             bestIndex = (int)i;
           }
         }
-      
+       }
+       //
       // If we found a buyer...
       if (bestIndex != -1) {
         // std::lock_guard<std::mutex> lk1(otherBook->mut);
