@@ -7,14 +7,21 @@
 
 #include "io.hpp"
 #include "engine.hpp"
-
 #include "orderbook.hpp"
 
-//makes a thread every time a connection comes in
+int Engine::getCurrentTimestamp() 
+{
+	std::unique_lock<std::mutex> timelk(timestampMut);
+	timestamp +=1;
+	return timestamp;
+}			
 
 Engine::Engine()
 {  
+	std::lock_guard<std::mutex> lk(instrumentMut);
 	orderBookHash instrumentMap;
+	std::unique_lock<std::mutex> timelk(timestampMut);
+	timestamp = 0;
 }
 
 void Engine::waitEngine() {}
@@ -25,41 +32,17 @@ void Engine::accept(ClientConnection connection)
 	thread.detach();
 }
 
-void Engine::updateBuyBook(std::string ticker, int price, int count, int id, long long timestamp)
+void Engine::updateBuyBook(std::string ticker, int price, int count, int id)
 {
-	std::lock_guard<std::mutex> lock(instrumentMut);
-	waitEngine();
-	Orderbook* book;
-	// Orderbook* otherBook; //
-	book = std::get<0>(instrumentMap.at(ticker));
-	// otherBook = std::get<1>(instrumentMap.at(ticker)); //
-	{
-		std::lock_guard<std::mutex> lk(book->mut);
-		Orderbook::wait(); 
-		book->add(price, count, id, timestamp);	
-	}
-	// cond.notify_one();
-
+	std::lock_guard<std::mutex> lk(instrumentMut);
+	(std::get<0>(instrumentMap.at(ticker)))->add(price, count, id);	
 }
 
-void Engine::updateSellBook(std::string ticker, int price, int count, int id, long long timestamp)
+void Engine::updateSellBook(std::string ticker, int price, int count, int id)
 {
-	std::lock_guard<std::mutex> lock(instrumentMut);
-	waitEngine();
-	Orderbook * book;
-	// Orderbook* otherBook; //
-	book = std::get<1>(instrumentMap.at(ticker));
-	// otherBook = std::get<0>(instrumentMap.at(ticker)); //
-	{
-		std::lock_guard<std::mutex> lk(book->mut); 
-		Orderbook::wait();
-		book->add(price, count, id, timestamp);
-	}
-	// cond.notify_one();
+	std::lock_guard<std::mutex> lk(instrumentMut);
+	(std::get<1>(instrumentMap.at(ticker)))->add(price, count, id);
 }
-
-
-
 
 void Engine::connection_thread(ClientConnection connection)
 {
@@ -75,28 +58,22 @@ void Engine::connection_thread(ClientConnection connection)
 		}
 
 		std::string ticker(input.instrument);
-		long long time = getCurrentTimestamp();
 
-		// Functions for printing output actions in the prescribed format are
-		// provided in the Output class:
 		switch(input.type)
 		{
 
 			case input_cancel: {
 				SyncCerr {} << "Got cancel: ID: " << input.order_id << std::endl;
 
-				// Remember to take timestamp at the appropriate time, or compute
-				// an appropriate timestamp!
-				auto output_time = getCurrentTimestamp();
 				if (orders.contains((int)input.order_id)) {
-					bool result = orders.at((int)input.order_id) -> removeById((int)input.order_id);
+					bool result = orders.at((int)input.order_id)->removeById((int)input.order_id);
 					if (result) {
-						Output::OrderDeleted(input.order_id, true, output_time);
+						Output::OrderDeleted(input.order_id, true, getCurrentTimestamp());
 						orders.erase((int)input.order_id);
 						break;
 					}
 				}
-				Output::OrderDeleted(input.order_id, false, output_time); 
+				Output::OrderDeleted(input.order_id, false, getCurrentTimestamp()); 
 				break;
 			}
 
@@ -105,57 +82,42 @@ void Engine::connection_thread(ClientConnection connection)
 				    << "Got order: " << static_cast<char>(input.type) << " " << input.instrument << " x " << input.count << " @ "
 				    << input.price << " ID: " << input.order_id << std::endl;
 
-				// Remember to take timestamp at the appropriate time, or compute
-				// an appropriate timestamp!
-				// auto output_time = getCurrentTimestamp();
-				bool result = Engine::handleOrder(ticker, input.type, (int)input.price, (int)input.count, (int)input.order_id, time);
+				bool result = Engine::handleOrder(ticker, input.type, (int)input.price, (int)input.count, (int)input.order_id);
 				
 				if (!result){
 					if (input.type == input_buy) {
-						//HASHMAP INSERTED
+						std::lock_guard<std::mutex> lk(instrumentMut);
 						orders.emplace(input.order_id, std::get<0>(instrumentMap.at(ticker)));
 					}
 					else if (input.type == input_sell) {
-						//HASHMAP INSERTED
+						std::lock_guard<std::mutex> lk(instrumentMut);
 						orders.emplace(input.order_id, std::get<1>(instrumentMap.at(ticker)));
 					}
 				}
 				break;
 			}
 		}
-
-		// Additionally:
-
-		// Remember to take timestamp at the appropriate time, or compute
-		// an appropriate timestamp!
 	}
 }
 
-bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id, long long timestamp) {
-  // Retrieve otherBook param for findMatch
+bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int count, int id) {
+
   {
 	std::lock_guard<std::mutex> lk(instrumentMut);
 	waitEngine();
 	if (!instrumentMap.contains(ticker)){
-			//HASHMAP INSERTED
 			instrumentMap.emplace(ticker, std::make_tuple(new Orderbook(), new Orderbook()));
 	}
   }
-  Orderbook* thisBook;
   Orderbook* otherBook;
-  // Active orders are
   switch (cmd) {
   case input_buy: {
 	{
 		std::lock_guard<std::mutex> lk(instrumentMut);
 		waitEngine();
     	otherBook = std::get<1>(instrumentMap.at(ticker));
-		thisBook = std::get<0>(instrumentMap.at(ticker));
 	}
-	updateBuyBook(ticker, price, count, id, timestamp);
-	// while(!thisBook->contains(id)){
-	// 	cond.wait(lk);
-	// }
+	updateBuyBook(ticker, price, count, id);
     break;
   }
   case input_sell: {
@@ -163,12 +125,8 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
 		std::lock_guard<std::mutex> lk(instrumentMut);
 		waitEngine();
     	otherBook = std::get<0>(instrumentMap.at(ticker));
-		thisBook = std::get<1>(instrumentMap.at(ticker));
 	}
-	updateSellBook(ticker, price, count, id, timestamp);
-	// while(!thisBook->contains(id)){
-	// 	cond.wait(lk);
-	// }
+	updateSellBook(ticker, price, count, id);
     break;
   }
   default: {
@@ -180,7 +138,7 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   // Find a match such that shares are left
   while (count > 0) {
 	int prevCount = count;
-  	count = otherBook->findMatch(cmd, price, count, id, thisBook, timestamp);
+  	count = otherBook->findMatch(cmd, price, count, id, getCurrentTimestamp());
     if (count == prevCount) {
 		break;
 	}
@@ -206,18 +164,14 @@ bool Engine::handleOrder(std::string ticker, CommandType cmd, int price, int cou
   }
   // Otherwise, update buy book if count is non-zero
   if (cmd == input_buy) {
-    // updateBuyBook(ticker, price, count, id);
-	std::lock_guard<std::mutex> lk(instrumentMut);
-	waitEngine();
-	std::get<0>(instrumentMap.at(ticker))->decrementCountById(id, count);
-	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, timestamp);
+	 std::lock_guard<std::mutex> lk(instrumentMut);
+	 std::get<0>(instrumentMap.at(ticker))->decrementCountById(id, count);
+	 Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   // Update sell book if command is sell
   } else {
-    // updateSellBook(ticker, price, count, id);
-    std::lock_guard<std::mutex> lk(instrumentMut);
-	waitEngine();
-	std::get<1>(instrumentMap.at(ticker))->decrementCountById(id, count);
-	Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, timestamp);
+     std::lock_guard<std::mutex> lk(instrumentMut);
+	 std::get<1>(instrumentMap.at(ticker))->decrementCountById(id, count);
+	 Output::OrderAdded((uint32_t)id, ticker.c_str(), (uint32_t)price, (uint32_t)count, cmd == input_sell, getCurrentTimestamp());
   }
   return false;
 }
